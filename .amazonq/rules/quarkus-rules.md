@@ -1,0 +1,1 @@
+../../.github/instructions/quarkus.instructions.md

@@ -1,0 +1,118 @@
+// Place your tool sets here...
+// Example:
+{
+	"DefaultToolSet": {
+		"tools": [
+			"changes",
+			"codebase",
+			"editFiles",
+			"extensions",
+			"fetch",
+			"findTestFiles",
+			"githubRepo",
+			"new",
+			"openSimpleBrowser",
+			"problems",
+			"readNotebookCellOutput",
+			"runCommands",
+			"runNotebooks",
+			"runTasks",
+			"search",
+			"searchResults",
+			"terminalLastCommand",
+			"terminalSelection",
+			"testFailure",
+			"think",
+			"usages",
+			"vscodeAPI",
+			// Time
+			"convert_time",
+			"get_current_time",
+			// Memory
+			"add_observations",
+			"create_entities",
+			"create_relations",
+			"delete_entities",
+			"delete_observations",
+			"delete_relations",
+			"open_nodes",
+			"read_graph",
+			"search_nodes",
+			// Sequential Thinking
+			"sequentialthinking",
+			// TaskManager
+			"add_tasks_to_request",
+			"approve_request_completion",
+			"approve_task_completion",
+			"delete_task",
+			"get_next_task",
+			"list_requests",
+			"mark_task_done",
+			"open_task_details",
+			"request_planning",
+			"update_task",
+			// Context7
+			"get-library-docs",
+			"resolve-library-id",
+		],
+		"description": "DefaultToolSet",
+		"icon": "tools"
+	},
+	"FrontendToolSet": {
+		"tools": [
+			// Playwright
+			"browser_close",
+			"browser_console_messages",
+			"browser_evaluate",
+			"browser_file_upload",
+			"browser_install",
+			"browser_navigate",
+			"browser_network_requests",
+			"browser_snapshot",
+			"browser_take_screenshot",
+			"browser_type",
+			"browser_wait_for"
+		],
+		"description": "Tools for frontend development",
+		"icon": "tools"
+	},
+	"BackendToolSet": {
+		"tools": [
+			// Node.js
+			"nodejs_execute",
+			"nodejs_install",
+			"nodejs_npm",
+			"nodejs_run_script",
+			// Python
+			"python_execute",
+			"python_install",
+			"python_run_script"
+		],
+		"description": "Tools for backend development",
+		"icon": "tools"
+	},
+	"DeploymentToolSet": {
+		"tools": [
+			"docker_build",
+			"docker_push",
+			"kubectl_apply",
+			"kubectl_delete",
+			"helm_install",
+			"helm_upgrade",
+			// AWS Knowledge tools
+			"aws___read_documentation",
+			"aws___recommend",
+			"aws___search_documentation",
+			"call_aws",
+			"suggest_aws_commands",
+			// Terraform MCP tools
+			"terraform_init",
+			"terraform_plan",
+			"terraform_apply",
+			"terraform_destroy",
+			"terraform_output",
+		],
+		"description": "Tools for deployment",
+		"icon": "tools"
+	}
+}
