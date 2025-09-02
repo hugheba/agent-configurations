@@ -226,6 +226,7 @@ Devcontainers:
 - Prevent infrastructure stack traces leaking externally.
 
 ### 3.5 Code Style & Static Analysis Standards
+- Always include `.editorconfig` file in project root for consistent formatting across editors and IDEs.
 - No wildcard imports (JVM); consistent formatting (Spotless / Prettier / rustfmt / Black).
 - Treat all compiler / linter warnings as errors.
 - Prefer immutability; limit module & class size (avoid "god" modules).

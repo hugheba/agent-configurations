@@ -7,6 +7,7 @@ applyTo: '**'
 ## Extends
 
 - Follow all rules from `nodejs-common-rules.md`
+- Use the context7 tool with id `/builderio/builder` for latest Builder.io documentation
 
 ## Stack Requirements
 
