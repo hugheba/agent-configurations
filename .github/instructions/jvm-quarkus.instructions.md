@@ -73,6 +73,28 @@ class User : PanacheEntity() {
 - Configure native image hints for reflection
 - Use CDI for dependency injection
 - Keep REST resources thin, delegate to services
+- Always add default values to data class properties for JSON deserialization when used as REST or GraphQL requests and responses
+
+## Data Classes
+
+- Always provide default values for all properties in data classes used for JSON serialization/deserialization
+- This prevents "No default constructor found" errors with JSON-B
+
+```kotlin
+// Good: Default values provided
+data class UserResponse(
+    val id: String = "",
+    val name: String = "",
+    val email: String = ""
+)
+
+// Bad: No default values
+data class UserResponse(
+    val id: String,
+    val name: String,
+    val email: String
+)
+```
 
 ## Documentation
 
