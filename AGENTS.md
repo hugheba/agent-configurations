@@ -4,10 +4,12 @@ This file should follow the pattern established in https://agb1gb
 
 ## File Organization Pattern
 
+All agent instruction files originate in the `.github/instructions` folder and are symlinked to other folders.
+
 All agent instruction files follow a centralized pattern:
 
 1. **Source Files**: Create in `.github/instructions/` with `.instructions.md` extension
-2. **Agent Symlinks**: Link to agent-specific directories with appropriate naming
+2. **Agent Symlinks**: Link to agent-specific directories with appropriate naming (Amazon Q, Cline, etc.)
 
 ## Current Agent Directories
 
@@ -15,9 +17,13 @@ All agent instruction files follow a centralized pattern:
 - Naming: `*-rules.md`
 - Links to: `../../.github/instructions/*.instructions.md`
 
+### Cline (Cline/Rules/)
+- Naming: `*-rules.md`
+- Links to: `../../.github/instructions/*.instructions.md`
+
 ## Adding New Agent Support
 
-1. Create agent directory (e.g., `.cursor/`, `.copilot/`)
+1. Create agent directory (e.g., `.cursor/`, `.copilot/`, `Cline`)
 2. Create symlinks from source files with agent-specific naming
 3. Document the new agent pattern here
 

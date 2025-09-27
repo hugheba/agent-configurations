@@ -1,0 +1,1 @@
+../../.github/instructions/jvm-common.instructions.md
