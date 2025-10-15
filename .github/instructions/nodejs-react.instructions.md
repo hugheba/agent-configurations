@@ -75,6 +75,14 @@ Avoid deep nesting; prefer segment groups and parallel routes only when justifie
 - Use React hooks appropriately (useState, useEffect, useCallback)
 - Use React.memo only when profiling shows benefit
 - Follow proper prop typing patterns
+- Follow atomic design principles when appropriate
+
+## Component Organization
+
+- Place page components in `src/app/(routes)`
+- Place reusable UI components in `src/components/`
+- Keep client components small and focused
+- Implement proper error boundaries
 
 ## Performance Optimization
 
@@ -242,6 +250,11 @@ frontend:
 ## Example Component Pattern
 
 ```typescript
+// components/UserCard.tsx
+import { useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
 interface UserCardProps {
   user: {
     id: string;
@@ -257,18 +270,164 @@ export function UserCard({ user, onEdit }: UserCardProps) {
   }, [user.id, onEdit]);
 
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm">
-      <h3 className="text-lg font-semibold">{user.name}</h3>
-      <p className="text-sm text-muted-foreground">{user.email}</p>
+    <Card>
+      <CardHeader>
+        <CardTitle>{user.name}</CardTitle>
+        <CardDescription>{user.email}</CardDescription>
+      </CardHeader>
       {onEdit && (
-        <button
-          onClick={handleEdit}
-          className="mt-2 rounded bg-primary px-3 py-1 text-primary-foreground hover:bg-primary/90"
-        >
-          Edit
-        </button>
+        <CardContent>
+          <Button onClick={handleEdit} variant="default" size="sm">
+            Edit
+          </Button>
+        </CardContent>
       )}
-    </div>
+    </Card>
+  );
+}
+```
+
+## Example Button Component with Variants (Shadcn/UI Pattern)
+
+```typescript
+// components/ui/button.tsx
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        link: 'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
+        icon: 'h-10 w-10',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = 'Button';
+
+export { Button, buttonVariants };
+```
+
+## Example Dialog Component (Radix UI + Shadcn Pattern)
+
+```typescript
+// components/UserEditDialog.tsx
+'use client';
+
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+interface UserEditDialogProps {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  onSave: (user: { id: string; name: string; email: string }) => void;
+}
+
+export function UserEditDialog({ user, onSave }: UserEditDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+
+  const handleSave = () => {
+    onSave({ id: user.id, name, email });
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Edit User</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogDescription>
+            Make changes to the user profile here. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">
+              Name
+            </Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="email" className="text-right">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="submit" onClick={handleSave}>
+            Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 ```
