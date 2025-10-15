@@ -267,6 +267,7 @@ Documentation Requirements (recap):
 - Module README (scope, public API, boundaries).
 - ADRs for significant decisions / deviations.
 - CHANGELOG auto-generated; inline comments only for non-obvious logic.
+- Any Markdown files created by LLM agents, put in `/docs-agent` folder
 
 ### 4.4 Collaboration & Communication
 Collaboration:

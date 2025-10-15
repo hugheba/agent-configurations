@@ -14,7 +14,7 @@ applyTo: '**'
 - Use Next.js 15+ with App Router (no legacy Pages Router)
 - Use React 18+ with Server Components by default
 - Use TypeScript in strict mode
-- Use TailwindCSS as primary styling utility
+- Use TailwindCSS as primary styling utility with Shadcn/UI and Radix Themes
 - Target modern evergreen browsers
 - Use ESM everywhere (`"type": "module"`)
 
