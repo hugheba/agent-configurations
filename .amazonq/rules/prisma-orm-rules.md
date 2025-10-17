@@ -1,0 +1,1 @@
+../../.github/instructions/prisma-orm.instructions.md

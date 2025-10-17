@@ -5,6 +5,13 @@
 - Implement proper session management with Supabase
 - Follow OAuth best practices for social logins
 
+## CRITICAL: Schema Management
+- **NEVER modify built-in Supabase schemas** (auth, storage, realtime, etc.) via external SQL or ORMs
+- **DO NOT** alter tables, indexes, or constraints in auth.* schemas
+- Built-in schemas are managed by Supabase and modifications will break functionality
+- Only interact with auth.users through Supabase Auth APIs, never direct SQL modifications
+- Create custom tables in the public schema or custom schemas for application data
+
 ## Auth Patterns
 - Protect routes using middleware with Supabase auth checks
 - Implement role-based access control using custom permissions
