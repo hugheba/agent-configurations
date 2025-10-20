@@ -219,6 +219,86 @@ Devcontainers:
 - No mutable global state after initialization.
 - Secrets from env or vault (never committed defaults containing secrets).
 
+#### Environment Files (.env) Best Practices
+**File Structure & Naming:**
+- `.env` - Never commit (gitignored); local development secrets/overrides
+- `.env.example` or `.env.template` - Committed; documents all required variables with placeholder values
+- `.env.local` - Never commit (gitignored); developer-specific overrides
+- `.env.test` - Committed; test environment defaults (no secrets)
+- `.env.production` - Never exists in repo; managed via deployment platform/vault
+
+**Mandatory Security Controls:**
+1. **Pre-commit Hook (REQUIRED)**: Install pre-commit hook to scan .env files for secrets before any commit
+   - Use tools: `gitleaks`, `detect-secrets`, or `git-secrets`
+   - Block commits containing high-entropy strings, API keys, tokens, passwords
+   - Scan both staged files and commit messages
+   - Example hook configuration (`.pre-commit-config.yaml`):
+     ```yaml
+     repos:
+       - repo: https://github.com/gitleaks/gitleaks
+         rev: v8.18.0
+         hooks:
+           - id: gitleaks
+       - repo: https://github.com/Yelp/detect-secrets
+         rev: v1.4.0
+         hooks:
+           - id: detect-secrets
+             args: ['--baseline', '.secrets.baseline']
+     ```
+2. **Gitignore Protection**: Ensure `.gitignore` includes:
+   ```
+   .env
+   .env.local
+   .env*.local
+   **/.env
+   ```
+3. **No Secrets in Example Files**: `.env.example` must only contain:
+   - Variable names
+   - Type hints (as comments)
+   - Placeholder values (e.g., `DATABASE_URL=postgresql://user:password@localhost:5432/dbname`)
+   - Never real credentials, even "development" ones
+
+**Loading & Validation:**
+- Load environment files in order of precedence (process.env > .env.local > .env)
+- Validate all required variables at startup; fail fast with clear error listing missing vars
+- Use typed loaders: `zod` (Node), `pydantic-settings` (Python), `typesafe-config` (JVM)
+- Example validation pattern:
+  ```typescript
+  import { z } from 'zod';
+  const ConfigSchema = z.object({
+    DATABASE_URL: z.string().url(),
+    API_KEY: z.string().min(20),
+    PORT: z.coerce.number().default(3000),
+  });
+  export const config = ConfigSchema.parse(process.env);
+  ```
+
+**Documentation Requirements:**
+- README must include "Configuration" section listing:
+  - All required environment variables
+  - Type, purpose, and example value for each
+  - Where to obtain sensitive values (e.g., "Request API_KEY from #platform-team")
+- Inline comments in `.env.example` for non-obvious variables
+- Document any variable dependencies (e.g., "If REDIS_ENABLED=true, REDIS_URL required")
+
+**CI/CD Integration:**
+- CI environments load secrets from secure stores (GitHub Secrets, AWS Parameter Store, HashiCorp Vault)
+- Never log secret values; redact in application logs and CI output
+- Rotate secrets on exposure; treat as security incident
+
+**Developer Workflow:**
+1. Clone repo
+2. Copy `.env.example` to `.env`: `cp .env.example .env`
+3. Install pre-commit hooks: `pre-commit install` (or equivalent for your tooling)
+4. Fill in local secrets in `.env`
+5. Verify startup: app should fail clearly if misconfigured
+
+**Prohibited Patterns:**
+- Committing `.env` files with any secrets (even "fake" ones that look real)
+- Hardcoded fallback secrets in application code
+- Sharing `.env` files via Slack, email, or unencrypted channels
+- Using production secrets in local development
+
 ### 3.4 Error Handling Model
 - Domain errors typed (sealed classes / enums / custom types).
 - Avoid generic catch & swallow; log (DEBUG) or propagate.
@@ -267,6 +347,59 @@ Documentation Requirements (recap):
 - Module README (scope, public API, boundaries).
 - ADRs for significant decisions / deviations.
 - CHANGELOG auto-generated; inline comments only for non-obvious logic.
+
+#### Agent-Generated Documentation & State Management
+All markdown summaries, analysis, or state files created by LLM agents (Amazon Q, Cline, Copilot, GitHub Copilot, etc.) MUST be placed in the `.ai/` directory with the following structure:
+
+```
+.ai/
+├── session.md           # Current session working notes (ephemeral)
+├── architecture.md      # Architectural insights and decisions (persistent)
+└── implementation.md    # Implementation progress and patterns (persistent)
+```
+
+**Agent Documentation Guidelines:**
+- **Maximum 3 files**: Session notes (ephemeral), Architecture analysis (persistent), Implementation log (persistent)
+- **Session Notes** (`.ai/session.md`): 
+  - Temporary working notes for current conversation
+  - Cleared/archived at logical session boundaries
+  - Contains TODO lists, quick observations, scratch work
+  - May be git-ignored or committed based on team preference
+- **Architecture Analysis** (`.ai/architecture.md`):
+  - Persistent architectural insights and system design decisions
+  - Dependencies, patterns, and structural observations
+  - Technology choices and rationale
+  - Updated via append or dated sections (maintain history)
+  - Should be committed to preserve team knowledge
+- **Implementation Log** (`.ai/implementation.md`):
+  - Persistent implementation history with chronological entries
+  - Key code changes and their reasoning
+  - Integration patterns and lessons learned
+  - Refactoring notes and migration steps
+  - Should be committed to track evolution
+
+**Prohibited Patterns:**
+- Creating multiple dated or timestamped markdown files (e.g., `analysis-2025-01-15.md`)
+- Scattered documentation across various directories
+- Per-feature or per-task documentation files (consolidate into the 3 files above)
+- Duplicate information across multiple files
+- Creating new markdown files without explicit user request
+- Using root-level or arbitrary directories for agent state
+
+**File Maintenance:**
+- Archive old session notes to `.ai/archive/` before starting new major work
+- Keep architecture analysis focused on current system state (archive deprecated sections)
+- Prune implementation log if it exceeds 1000 lines (move older entries to archive)
+- Use Git history for detailed change tracking, not proliferated markdown files
+- Review and consolidate quarterly to prevent bloat
+
+**Gitignore Recommendations:**
+Add to `.gitignore` if session notes should remain local:
+```
+.ai/session.md
+.ai/archive/
+```
+Commit architecture and implementation logs for team visibility.
 - Put Any Markdown summaries created by LLM agents in the `/docs-agent-state` folder
 
 ### 4.4 Collaboration & Communication
