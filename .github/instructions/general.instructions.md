@@ -400,7 +400,6 @@ Add to `.gitignore` if session notes should remain local:
 .ai/archive/
 ```
 Commit architecture and implementation logs for team visibility.
-- Put Any Markdown summaries created by LLM agents in the `/docs-agent-state` folder
 
 ### 4.4 Collaboration & Communication
 Collaboration:
