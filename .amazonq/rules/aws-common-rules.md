@@ -1,1 +1,0 @@
-../../.github/instructions/aws-common.instructions.md

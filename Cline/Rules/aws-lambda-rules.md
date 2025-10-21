@@ -1,1 +1,0 @@
-../../.github/instructions/aws-lambda.instructions.md

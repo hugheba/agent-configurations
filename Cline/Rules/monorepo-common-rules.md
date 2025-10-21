@@ -1,1 +1,0 @@
-../../.github/instructions/monorepo-common.instructions.md

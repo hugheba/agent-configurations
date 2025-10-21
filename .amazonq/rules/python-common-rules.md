@@ -1,1 +1,0 @@
-../../.github/instructions/python-common.instructions.md

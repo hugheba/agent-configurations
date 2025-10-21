@@ -1,1 +1,0 @@
-../../.github/instructions/dotnet-common.instructions.md

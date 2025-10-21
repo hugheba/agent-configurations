@@ -1,1 +1,0 @@
-../../.github/instructions/jvm-springboot.instructions.md

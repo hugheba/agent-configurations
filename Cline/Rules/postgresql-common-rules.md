@@ -1,1 +1,0 @@
-../../.github/instructions/postgresql-common.instructions.md

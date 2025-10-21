@@ -1,1 +1,0 @@
-../../.github/instructions/terraform-common.instructions.md

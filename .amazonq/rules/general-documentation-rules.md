@@ -1,1 +1,0 @@
-../../.github/instructions/general-documentation.instructions.md

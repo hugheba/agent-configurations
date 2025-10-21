@@ -1,1 +1,0 @@
-../../.github/instructions/nodejs-angular.instructions.md

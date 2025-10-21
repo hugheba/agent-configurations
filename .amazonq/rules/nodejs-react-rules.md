@@ -1,1 +1,0 @@
-../../.github/instructions/nodejs-react.instructions.md

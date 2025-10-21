@@ -1,1 +1,0 @@
-../../.github/instructions/jvm-quarkus-api.instructions.md
