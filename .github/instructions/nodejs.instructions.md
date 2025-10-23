@@ -63,6 +63,42 @@ Unapproved: moment, request, deprecated or unmaintained packages.
 - Validate with zod before exporting a typed config object.
 - No dynamic mutation after bootstrap.
 
+## Environment Variables & .env Files
+- Use minimal .env files; prefer platform-native configuration (AWS Systems Manager, Amplify env vars).
+- Never commit .env files; add to .gitignore.
+- Provide .env.example with placeholder values only.
+- Framework-specific: only use what the framework requires.
+
+### Next.js Environment Variables
+Next.js requires only:
+- `.env.local` for local development (gitignored)
+- `.env.example` for documentation (committed)
+
+**Minimal .env.local example**:
+```
+DATABASE_URL="postgresql://user:pass@localhost:5432/db"
+NEXT_PUBLIC_API_URL="http://localhost:3000"
+```
+
+**Rules**:
+- `NEXT_PUBLIC_*` prefix exposes to browser (use sparingly)
+- All other vars are server-only
+- Validate all env vars with Zod at startup
+- Never use .env.development, .env.production, or .env.test unless absolutely necessary
+
+**Validation example**:
+```typescript
+// lib/env.ts
+import { z } from 'zod';
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  NEXT_PUBLIC_API_URL: z.string().url(),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
 ## Security
 - Keep dependencies updated (automation via dependabot / renovate).
 - Run `npm audit` in CI; address high severity promptly.
@@ -727,6 +763,23 @@ export function UserEditDialog({ user, onSave }: UserEditDialogProps) {
 - Use `npx prisma migrate dev` for development migrations
 - Use `npx prisma migrate deploy` for production deployments
 - Run `npx prisma generate` after schema changes to update Prisma Client
+
+#### Naming Conventions (PostgreSQL)
+- **CRITICAL**: Use camelCase for Prisma model properties
+- **CRITICAL**: Map to snake_case database columns using `@map("column_name")`
+- This maintains TypeScript/JavaScript conventions while following PostgreSQL best practices
+- Example:
+  ```prisma
+  model User {
+    id        String   @id @default(uuid())
+    firstName String   @map("first_name")
+    lastName  String   @map("last_name")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("users")
+  }
+  ```
 
 #### Query Patterns
 - Use Prisma Client methods: `findMany`, `findUnique`, `create`, `update`, `delete`, `upsert`
