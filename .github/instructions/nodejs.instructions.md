@@ -331,6 +331,11 @@ Avoid deep nesting; prefer segment groups and parallel routes only when justifie
 - Use `cache: 'no-store'` for dynamic data
 - Implement ISR with revalidate tags/time
 - Use Route Handlers (app/api) instead of legacy pages/api
+- **When using Prisma**: Prefer Server Actions over API routes for database operations unless explicitly specified otherwise in prompt or instructions
+  - Server Actions provide type-safe, co-located data mutations
+  - Eliminate unnecessary API route boilerplate for database operations
+  - Better integration with React Server Components and form handling
+  - Use API routes only when needed for external API integrations, webhooks, or when explicitly requested
 - Co-locate server actions near form components
 - Use tag-based revalidation for selective cache busting
 - Use TanStack Query or SWR only for client-side real-time data
