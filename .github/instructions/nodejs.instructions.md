@@ -41,11 +41,70 @@ applyTo: '**'
 Unapproved: moment, request, deprecated or unmaintained packages.
 
 ## TypeScript Conventions
+- Target TypeScript 6.0+ for enhanced schema-based type inference and validation
 - Use path aliases via tsconfig `paths` instead of deep relative imports.
 - Export types separately when helpful (`export type { Foo }`).
 - Narrow unknown/any at boundaries only; forbid implicit any.
 - Prefer readonly for immutable shapes; use `as const` intentionally.
 - Avoid enums; use union string literals + type guards.
+- Leverage TypeScript 6.0's automatic type inference with Zod schemas (no manual `z.infer<>` needed)
+- Use Zod for runtime validation at all data boundaries (APIs, user input, environment variables)
+
+## Runtime Validation with Zod
+- **Validate at boundaries**: All external data (API responses, user input, environment variables) MUST be validated with Zod
+- **TypeScript 6.0 integration**: Use automatic type inference instead of manual `z.infer<typeof schema>`
+- **Fail fast**: Validate environment variables and critical configuration at startup
+- **API response validation**: Never trust external APIs - validate all responses to catch breaking changes early
+
+**Environment Variable Validation**:
+```typescript
+// lib/env.ts
+import { z } from 'zod';
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  API_KEY: z.string().min(32),
+  NODE_ENV: z.enum(['development', 'production', 'test'])
+});
+
+export const env = envSchema.parse(process.env); // Fail fast if invalid
+```
+
+**API Response Validation**:
+```typescript
+const apiResponseSchema = z.object({
+  data: z.array(z.object({
+    id: z.number(),
+    title: z.string(),
+    status: z.enum(['draft', 'published'])
+  })),
+  meta: z.object({
+    page: z.number(),
+    total: z.number()
+  })
+});
+
+async function fetchPosts() {
+  const res = await fetch('/api/posts');
+  const json = await res.json();
+  return apiResponseSchema.parse(json); // Crash early if API breaks contract
+}
+```
+
+**TypeScript 6.0 Function Signatures**:
+```typescript
+const userSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  age: z.number().min(18)
+});
+
+// TypeScript 6.0 automatically infers types
+function saveUser(data: typeof userSchema._input) {
+  const validated = userSchema.parse(data);
+  // validated is now fully typed without manual inference
+}
+```
 
 ## Error Handling
 - Throw domain-specific error classes (`extends Error`) with a code property.
@@ -284,7 +343,7 @@ app.post(
 ### Next.js + React (Frontend Framework)
 
 #### Stack Requirements
-- Use Next.js 15+ with App Router (no legacy Pages Router)
+- Use Next.js 16+ with App Router (no legacy Pages Router)
 - Use React 18+ with Server Components by default
 - Use TypeScript in strict mode
 - Use TailwindCSS as primary styling utility with Shadcn/UI and Radix Themes
@@ -389,6 +448,30 @@ Avoid deep nesting; prefer segment groups and parallel routes only when justifie
 - Use Zod for schema validation with TypeScript inference
 - Validate on both client and server (never trust client only)
 - Implement accessible error messages with aria-live
+
+**Server Actions with TypeScript 6.0 + Zod**:
+```typescript
+'use server';
+
+import { z } from 'zod';
+
+const formSchema = z.object({
+  username: z.string().min(3).max(20),
+  email: z.string().email()
+});
+
+export async function createUser(formData: FormData) {
+  const raw = Object.fromEntries(formData);
+  const result = formSchema.safeParse(raw);
+  
+  if (!result.success) {
+    return { errors: result.error.flatten() };
+  }
+  
+  // result.data is now typed AND validated with TypeScript 6.0
+  await db.users.create(result.data);
+}
+```
 
 #### Accessibility Requirements
 - Use semantic HTML elements first (button, nav, header, main)
