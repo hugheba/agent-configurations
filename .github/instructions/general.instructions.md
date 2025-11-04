@@ -488,58 +488,104 @@ Merging & Releases:
 - Validate documentation accuracy during releases
 - Remove outdated documentation promptly
 
-#### Agent-Generated Documentation & State Management
-All markdown summaries, analysis, or state files created by LLM agents (Amazon Q, Cline, Copilot, GitHub Copilot, etc.) MUST be placed in the `.ai/` directory with the following structure:
+#### Specification-Driven Development with Spec-Kit
+
+**Overview:**
+This project uses [GitHub Spec-Kit](https://github.com/github/spec-kit) for structured feature development. Specifications are created before implementation and serve as the source of truth for requirements.
+
+**Directory Structure:**
 
 ```
-.ai/
-├── session.md           # Current session working notes (ephemeral)
-├── architecture.md      # Architectural insights and decisions (persistent)
-└── implementation.md    # Implementation progress and patterns (persistent)
+project/
+├── .specify/                    # Spec-kit configuration
+│   ├── memory/
+│   │   └── constitution.md     # Project constitution (non-negotiables)
+│   ├── templates/              # Spec, plan, task templates
+│   └── scripts/                # Automation scripts
+│
+├── specs/                       # Feature specifications
+│   ├── ###-feature-name/       # Each feature gets numbered directory
+│   │   ├── spec.md             # Feature specification
+│   │   ├── plan.md             # Implementation plan
+│   │   ├── tasks.md            # Task breakdown
+│   │   ├── research.md         # Technical research
+│   │   └── implementation.md   # Implementation notes (post-completion)
+│   └── README.md               # Specs index
+│
+├── docs/                        # Project documentation
+│   ├── README.md               # Documentation index
+│   ├── adr/                    # Architecture Decision Records
+│   ├── setup/                  # Setup & configuration guides
+│   ├── features/               # Feature documentation
+│   ├── guides/                 # How-to guides
+│   ├── api/                    # API documentation
+│   └── runbooks/               # Operational procedures
+│
+├── CHANGELOG.md                # Version history (auto-generated)
+├── CONTRIBUTING.md             # Contribution guidelines
+└── README.md                   # Project overview
 ```
 
-**Agent Documentation Guidelines:**
-- **Maximum 3 files**: Session notes (ephemeral), Architecture analysis (persistent), Implementation log (persistent)
-- **Session Notes** (`.ai/session.md`): 
-  - Temporary working notes for current conversation
-  - Cleared/archived at logical session boundaries
-  - Contains TODO lists, quick observations, scratch work
-  - May be git-ignored or committed based on team preference
-- **Architecture Analysis** (`.ai/architecture.md`):
-  - Persistent architectural insights and system design decisions
-  - Dependencies, patterns, and structural observations
-  - Technology choices and rationale
-  - Updated via append or dated sections (maintain history)
-  - Should be committed to preserve team knowledge
-- **Implementation Log** (`.ai/implementation.md`):
-  - Persistent implementation history with chronological entries
-  - Key code changes and their reasoning
-  - Integration patterns and lessons learned
-  - Refactoring notes and migration steps
-  - Should be committed to track evolution
+**Spec-Kit Workflow:**
+
+1. **Constitution** (`/speckit.constitution`):
+   - Define non-negotiable project principles
+   - Stored in `.specify/memory/constitution.md`
+   - Updated via amendment process with version control
+
+2. **Specify** (`/speckit.specify "feature description"`):
+   - Creates `/specs/###-feature-name/spec.md`
+   - Defines user scenarios, requirements, success criteria
+   - Technology-agnostic, focuses on WHAT not HOW
+
+3. **Plan** (`/speckit.plan`):
+   - Generates `/specs/###-feature-name/plan.md`
+   - Technical approach, architecture, dependencies
+   - Includes constitution compliance check
+
+4. **Tasks** (`/speckit.tasks`):
+   - Creates `/specs/###-feature-name/tasks.md`
+   - Breaks plan into actionable tasks
+   - Each task independently testable
+
+5. **Implement**:
+   - Follow tasks in order
+   - Link commits to tasks
+   - Update implementation.md with notes
+
+**Documentation Types:**
+
+| Type | Location | Purpose | Maintained By |
+|------|----------|---------|---------------|
+| Specifications | `/specs` | Feature requirements | Spec-kit + team |
+| Constitution | `.specify/memory/` | Non-negotiables | Team consensus |
+| Setup Guides | `/docs/setup` | Getting started | Developers |
+| Feature Docs | `/docs/features` | How features work | Developers |
+| How-To Guides | `/docs/guides` | Task-oriented | Developers |
+| ADRs | `/docs/adr` | Architectural decisions | Architects |
+| API Docs | `/docs/api` | API reference | Auto-generated + manual |
+| Runbooks | `/docs/runbooks` | Operations | DevOps |
+| Changelog | `CHANGELOG.md` | Version history | Auto-generated |
+
+**Best Practices:**
+
+- ✅ Write specs before code (specification-first)
+- ✅ Keep specs focused and testable
+- ✅ Update specs when requirements change
+- ✅ Archive completed specs with implementation notes
+- ✅ Link commits to spec tasks
+- ✅ Use constitution for non-negotiable principles
+- ✅ Create ADRs for significant architectural decisions
+- ✅ Keep documentation synchronized with code
+- ✅ Auto-generate CHANGELOG from conventional commits
 
 **Prohibited Patterns:**
-- Creating multiple dated or timestamped markdown files (e.g., `analysis-2025-01-15.md`)
-- Scattered documentation across various directories
-- Per-feature or per-task documentation files (consolidate into the 3 files above)
-- Duplicate information across multiple files
-- Creating new markdown files without explicit user request
-- Using root-level or arbitrary directories for agent state
 
-**File Maintenance:**
-- Archive old session notes to `.ai/archive/` before starting new major work
-- Keep architecture analysis focused on current system state (archive deprecated sections)
-- Prune implementation log if it exceeds 1000 lines (move older entries to archive)
-- Use Git history for detailed change tracking, not proliferated markdown files
-- Review and consolidate quarterly to prevent bloat
-
-**Gitignore Recommendations:**
-Add to `.gitignore` if session notes should remain local:
-```
-.ai/session.md
-.ai/archive/
-```
-Commit architecture and implementation logs for team visibility.
+- ❌ Implementing features without approved specifications
+- ❌ Scattered markdown files in root directory
+- ❌ Duplicate documentation across multiple locations
+- ❌ Outdated documentation (update in same PR as code)
+- ❌ Specifications that describe implementation details (keep technology-agnostic)
 
 ### 4.4 Collaboration & Communication
 Collaboration:
@@ -814,6 +860,268 @@ test:
 - Use SAST tools in pipeline.
 - Scan container images for vulnerabilities.
 - Validate SBOM and provenance.
+
+#### Environment Management & Service Branching Strategies
+
+**Core Principle**: Leverage built-in environment branching features of modern cloud services instead of creating separate projects/accounts for each environment. This reduces costs, simplifies management, and enables better collaboration.
+
+**General Best Practices**:
+- Use service-native branching/environment features when available
+- Map environments to branches: development → feature branches, staging → staging branch, production → main branch
+- Automate environment provisioning and teardown via CI/CD
+- Tag resources consistently with environment labels for cost tracking
+- Document environment-specific configurations and limitations
+- Always research the specific service's best practices before implementation
+
+**Database Services**
+
+**Neon (PostgreSQL)**:
+- **Use Database Branching**: Neon's primary feature for environment management
+- **Development**: Create branch per feature/PR from main database
+  - Instant branching with copy-on-write (no data duplication cost)
+  - Automatically deleted when PR closes (configure in CI/CD)
+  - Each developer/feature gets isolated database
+- **Staging**: Maintain dedicated staging branch from production
+  - Refresh periodically from production data (with PII scrubbing)
+  - Reset to production state for testing migrations
+- **Production**: Main branch with compute autoscaling
+- **CI/CD Integration**: Use Neon API to create/delete branches automatically
+- **Cost Optimization**: Branches share storage; only active compute costs
+```bash
+# Example: Create branch via Neon API in CI
+curl -X POST "https://console.neon.tech/api/v2/projects/$PROJECT_ID/branches" \
+  -H "Authorization: Bearer $NEON_API_KEY" \
+  -d '{"name":"feature-123","parent_id":"main"}'
+```
+
+**Supabase**:
+- **Project-based environments**: Use Supabase CLI and branching workflows
+- **Development**: Local Supabase instance via Docker (`supabase start`)
+  - Run locally for development with seeded data
+  - Migrations tracked in version control
+- **Preview/Staging**: 
+  - Option 1: Separate Supabase project with Preview Project links
+  - Option 2: Use Supabase Branches (beta feature when available)
+  - Link to Neon database branch for data isolation
+- **Production**: Dedicated Supabase project
+- **Database**: Connect Supabase to external Neon database and use Neon branching
+- **Migration Strategy**: 
+  - Develop migrations locally
+  - Test in preview environment
+  - Deploy to production via CI/CD (`supabase db push`)
+```yaml
+# Example: supabase/config.toml
+[db]
+  major_version = 15
+  port = 54322
+  
+# Link to external Neon database per environment
+# Dev: Neon branch for feature
+# Staging: Neon staging branch  
+# Prod: Neon main branch
+```
+
+**AWS RDS/Aurora**:
+- **Avoid multiple RDS instances per environment** (cost prohibitive)
+- **Use database/schema separation**:
+  - Single RDS instance with separate databases: `myapp_dev`, `myapp_staging`, `myapp_prod`
+  - Or schema-level isolation: `dev.users`, `staging.users`, `prod.users`
+- **Alternative**: RDS Snapshots for staging refresh
+- **Prefer Neon for cost-effective branching** over multiple RDS instances
+
+**Hosting & Compute Services**
+
+**AWS Amplify Hosting**:
+- **Branch-based deployments**: Automatic per Git branch
+- **Development**: Feature branches auto-deploy to preview URLs
+  - `https://feature-123.d1234.amplifyapp.com`
+  - Automatic deletion when branch deleted
+- **Staging**: Deploy from `staging` branch
+  - `https://staging.d1234.amplifyapp.com`
+  - Requires manual approval gate in CI/CD
+- **Production**: Deploy from `main` branch
+  - Custom domain mapping
+  - Enable production-only features (CDN, WAF)
+- **Environment Variables**: Configure per branch in Amplify console
+- **Database Connection**: Map Amplify branch to corresponding Neon branch
+```yaml
+# amplify.yml - environment-specific builds
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Inject environment-specific Neon connection
+        - |
+          if [ "${AWS_BRANCH}" = "main" ]; then
+            export DATABASE_URL="${NEON_PROD_URL}"
+          elif [ "${AWS_BRANCH}" = "staging" ]; then
+            export DATABASE_URL="${NEON_STAGING_URL}"
+          else
+            # Feature branch - create Neon branch
+            export DATABASE_URL=$(create_neon_branch.sh)
+          fi
+```
+
+**Vercel**:
+- **Git Integration**: Automatic preview deployments per branch/PR
+- **Development**: Preview URLs for every commit
+  - Automatic environment variable injection
+  - Preview database connections to Neon branches
+- **Production**: Deploy from production branch
+- **Environment Variables**: Configure per environment (Development/Preview/Production)
+- **Serverless Functions**: Automatically deployed per environment
+
+**AWS Lambda + API Gateway**:
+- **Single Lambda, Multiple Versions/Aliases**:
+  - Publish new Lambda version on code change
+  - Create aliases for environments: `dev`, `staging`, `prod`
+  - API Gateway stages map to Lambda aliases
+- **API Gateway Stages**:
+  - `/dev` → Lambda alias `dev`
+  - `/staging` → Lambda alias `staging`  
+  - `/prod` → Lambda alias `prod`
+- **Environment Variables**: Set per Lambda alias
+- **Canary Deployments**: Use Lambda weighted aliases
+```bash
+# Example: Deploy Lambda with aliases
+aws lambda publish-version --function-name myFunction
+aws lambda update-alias --function-name myFunction \
+  --name staging --function-version 5
+  
+# API Gateway stage mapping
+aws apigateway update-stage --rest-api-id abc123 \
+  --stage-name staging --patch-operations \
+  op=replace,path=/variables/lambdaAlias,value=staging
+```
+
+**Cloudflare Workers/Pages**:
+- **Branch Previews**: Automatic preview deployments
+- **Environments**: Production and Preview (automatically managed)
+- **Environment Variables**: Configure per environment in dashboard
+- **Durable Objects**: Use separate namespaces per environment
+
+**Backend-as-a-Service (BaaS)**
+
+**Firebase**:
+- **Projects as Environments**: Use separate Firebase projects
+  - Development project with emulator suite
+  - Staging project (clone of production)
+  - Production project
+- **Emulator Suite**: Run Firebase services locally
+- **Cost Management**: Use Blaze plan; set budget alerts
+- **Firestore**: Use separate collections or subcollections per environment within same project (anti-pattern, prefer separate projects)
+
+**Networking & CDN**
+
+**CloudFront**:
+- **Single Distribution, Multiple Behaviors**: Route patterns to different origins
+- **Lambda@Edge**: Deploy different function versions per environment
+- **Use Cases**: Route `/api/dev/*` to dev API, `/api/prod/*` to prod API
+
+**API Management**
+
+**AWS API Gateway**:
+- **Stages for Environments**: 
+  - Create stages: `dev`, `staging`, `prod`
+  - Deploy API to specific stage
+  - Each stage has unique invoke URL
+- **Stage Variables**: Environment-specific configuration
+  - Database endpoints
+  - Lambda function versions/aliases
+  - Feature flags
+- **Canary Releases**: Enable canary on production stage (% traffic split)
+```json
+{
+  "stageVariables": {
+    "lambdaAlias": "prod",
+    "dbEndpoint": "${NEON_PROD_URL}",
+    "featureFlagEndpoint": "https://prod.flags.example.com"
+  }
+}
+```
+
+**Monitoring & Observability Per Environment**
+
+- **CloudWatch/Datadog**: Use environment tags for log/metric filtering
+- **Sentry/Error Tracking**: Separate projects or use environment tags
+- **Application Insights**: Configure different instrumentation keys
+- **Distributed Tracing**: Tag spans with environment metadata
+
+**Cost Optimization Strategies**
+
+1. **Consolidate where possible**: Single service instance with logical separation
+2. **Auto-scaling**: Use serverless/auto-scaling for non-prod (scale to zero)
+3. **Scheduled shutdown**: Shut down dev/staging resources outside business hours
+4. **Ephemeral environments**: Create on-demand, destroy after use (preview environments)
+5. **Shared resources**: Use same monitoring, logging, CI/CD infrastructure
+6. **Database branching**: Leverage copy-on-write (Neon) vs full database copies
+
+**Anti-Patterns to Avoid**
+
+❌ **Multiple AWS accounts per environment** (for small teams/projects)
+  - Overhead of account management
+  - Complicated cross-account access
+  - ✅ **Better**: Use single account with resource tagging
+
+❌ **Full database clones for each environment**
+  - Storage costs multiply
+  - Data drift issues
+  - ✅ **Better**: Use database branching (Neon) or schema separation
+
+❌ **Separate Supabase/Firebase projects for every feature branch**
+  - Cost explosion
+  - Management complexity
+  - ✅ **Better**: Local emulators + single staging project
+
+❌ **Production data in development/staging**
+  - Security/compliance risk
+  - ✅ **Better**: Synthetic data or anonymized snapshots
+
+**Environment Lifecycle Management**
+
+```yaml
+# Example: GitHub Actions workflow for ephemeral environments
+name: Preview Environment
+on: pull_request
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Neon Branch
+        id: neon
+        run: |
+          BRANCH_ID=$(curl -X POST ... | jq -r '.branch.id')
+          echo "branch_id=$BRANCH_ID" >> $GITHUB_OUTPUT
+          
+      - name: Deploy to Amplify Preview
+        run: |
+          # Amplify auto-deploys on branch push
+          # Set DATABASE_URL to Neon branch connection string
+          
+      - name: Comment PR with URLs
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "Preview: https://pr-${{ github.event.pull_request.number }}.amplifyapp.com"
+            
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true || github.event.pull_request.state == 'closed'
+    steps:
+      - name: Delete Neon Branch
+        run: curl -X DELETE "https://console.neon.tech/api/v2/projects/$PROJECT/branches/$BRANCH_ID"
+```
+
+**Checklist: Choosing Environment Strategy**
+
+- [ ] Service supports native branching/environments? (Prefer this)
+- [ ] Cost implications of multiple projects vs branching?
+- [ ] Data isolation requirements (compliance, security)?
+- [ ] Team size and collaboration needs?
+- [ ] Automation capabilities (API, CLI, IaC)?
+- [ ] Monitoring and observability requirements?
+- [ ] Disaster recovery and backup strategies aligned?
 
 ### 8.3 Git Platform Management (GitHub / GitLab)
 

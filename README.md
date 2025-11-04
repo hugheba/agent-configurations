@@ -7,7 +7,10 @@ This repository contains configuration files and instructions for various AI age
 All instruction files are stored in `.github/instructions/` as the source of truth and symlinked to agent-specific directories:
 
 - **Source**: `.github/instructions/*.instructions.md` - Master files containing all instructions
-- **Symlinks**: `.amazonq/rules/*-rules.md` - Symlinks pointing to the source files
+- **Symlinks**: 
+  - `.amazonq/rules/*-rules.md` - Amazon Q configuration
+  - `Cline/Rules/*-rules.md` - Cline configuration
+  - `.roo/rules/*-rules.md` - Roo configuration
 
 ### Adding New Instructions
 
@@ -27,6 +30,16 @@ All instruction files are stored in `.github/instructions/` as the source of tru
 ├── general-rules.md -> ../../.github/instructions/general.instructions.md
 ├── nodejs-common-rules.md -> ../../.github/instructions/nodejs-common.instructions.md
 └── python-fastapi-rules.md -> ../../.github/instructions/python-fastapi.instructions.md
+
+Cline/Rules/
+├── general-rules.md -> ../../.github/instructions/general.instructions.md
+├── nodejs-rules.md -> ../../.github/instructions/nodejs.instructions.md
+└── python-rules.md -> ../../.github/instructions/python.instructions.md
+
+.roo/rules/
+├── general-rules.md -> ../../.github/instructions/general.instructions.md
+├── nodejs-rules.md -> ../../.github/instructions/nodejs.instructions.md
+└── python-rules.md -> ../../.github/instructions/python.instructions.md
 ```
 
 This approach ensures:

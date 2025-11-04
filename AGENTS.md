@@ -21,9 +21,13 @@ All agent instruction files follow a centralized pattern:
 - Naming: `*-rules.md`
 - Links to: `../../.github/instructions/*.instructions.md`
 
+### Roo (.roo/rules/)
+- Naming: `*-rules.md`
+- Links to: `../../.github/instructions/*.instructions.md`
+
 ## Adding New Agent Support
 
-1. Create agent directory (e.g., `.cursor/`, `.copilot/`, `Cline`)
+1. Create agent directory (e.g., `.cursor/`, `.copilot/`, `.roo/`)
 2. Create symlinks from source files with agent-specific naming
 3. Document the new agent pattern here
 
@@ -35,6 +39,8 @@ touch .github/instructions/new-feature.instructions.md
 
 # 2. Create symlinks for each agent
 ln -s ../../.github/instructions/new-feature.instructions.md .amazonq/rules/new-feature-rules.md
+ln -s ../../.github/instructions/new-feature.instructions.md Cline/Rules/new-feature-rules.md
+ln -s ../../.github/instructions/new-feature.instructions.md .roo/rules/new-feature-rules.md
 
 # 3. Add other agents as needed
 ```
