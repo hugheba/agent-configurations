@@ -1614,7 +1614,7 @@ const { data, error } = await supabase.auth.signInWithPassword({
 Governance & Review Checklist (Abbrev): boundary purity, deterministic tests, changed lines executed, security controls, structured logging, native image viability, minimal dependencies, docs updated, performance rationale.
 
 ### 9.2 Non-Negotiables
-Non-Negotiables: no failing/skipped tests without issue; no TODO without ticket; no secrets committed; no unreviewed generated code.
+Non-Negotiables: no failing/skipped tests without issue; no TODO without ticket; no secrets committed; no unreviewed generated code; after any schema, code, or configuration changes, verify the application builds, compiles, passes linting, and all unit tests succeed before considering the change complete.
 
 ### 9.3 Exceptions Process
 Exceptions: require ADR with justification, impact, mitigation/exit strategy (e.g., skipping native build, adding heavy framework).
@@ -1814,6 +1814,7 @@ Non-Negotiables:
 - No TODO without linked ticket.
 - No direct secrets / credentials in repo.
 - No unreviewed generated code (document generation source).
+- After any schema, code, or configuration changes, verify the application builds, compiles, passes linting, and all unit tests succeed before considering the change complete.
 
 Exceptions:
 - Any deviation (e.g., skipping native build, adding heavy framework) requires ADR with:
