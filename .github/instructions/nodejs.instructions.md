@@ -1329,6 +1329,175 @@ If migrating from `@supabase/auth-helpers-nextjs`:
 
 - [Supabase Auth Documentation](https://supabase.com/docs/guides/auth)
 - [Supabase SSR Package](https://supabase.com/docs/guides/auth/server-side/nextjs)
+- [Supabase Server-Side Auth with Next.js App Router](https://supabase.com/docs/guides/auth/server-side/nextjs?router=app&queryGroups=router)
 - [Next.js Middleware Documentation](https://nextjs.org/docs/app/building-your-application/routing/middleware)
 - [PKCE Flow Specification](https://oauth.net/2/pkce/)
+
+---
+
+## Next.js Middleware & Database Access
+
+### Critical: Edge Runtime Constraints
+
+**Next.js middleware runs in Edge Runtime**, which has significant limitations compared to Node.js runtime:
+
+- **Edge Runtime**: Limited Node.js APIs, optimized for low latency
+- **Node.js Runtime**: Full Node.js APIs (Server Components, Server Actions, API Routes)
+
+### Prisma ORM Cannot Run in Middleware
+
+**❌ NEVER use Prisma in Next.js middleware**
+
+```typescript
+// ❌ BAD - This will cause runtime errors
+import prisma from '@/lib/prisma';
+
+export async function middleware(req: NextRequest) {
+  // This WILL FAIL in Edge runtime
+  const user = await prisma.user.findUnique({
+    where: { id: userId }
+  });
+}
+```
+
+**Why Prisma doesn't work in middleware:**
+- Prisma requires full Node.js APIs (fs, crypto, etc.)
+- Edge runtime only provides a subset of Node.js APIs
+- Prisma generates Node.js-specific code that cannot execute in Edge
+- Will cause "Module not found" or "Cannot find module" errors
+
+### Use Supabase Direct Database Queries Instead
+
+**✅ DO: Use Supabase's direct table API in middleware**
+
+```typescript
+// ✅ GOOD - Works in Edge runtime
+import { createServerClient } from '@supabase/ssr';
+
+export async function middleware(req: NextRequest) {
+  const supabase = createServerClient(...);
+  
+  // Use Supabase direct queries - Edge compatible
+  const { data: userRoles } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId);
+}
+```
+
+### Where to Use Each Approach
+
+**Use Prisma (Node.js Runtime):**
+- ✅ Server Components (`app/**/page.tsx`)
+- ✅ Server Actions (`'use server'` functions)
+- ✅ API Routes (`app/api/**/route.ts`)
+- ✅ Server-side utilities called from above contexts
+
+**Use Supabase Direct Queries (Edge Runtime):**
+- ✅ Middleware (`middleware.ts`)
+- ✅ Edge API Routes (with `export const runtime = 'edge'`)
+- ✅ Any code that needs to run in Edge runtime
+
+### Database Column Naming
+
+**CRITICAL: Mind the naming convention differences:**
+
+```typescript
+// Prisma uses camelCase (from schema.prisma @map())
+const roles = await prisma.userRole.findMany({
+  where: { userId: user.id }  // camelCase
+});
+
+// Supabase uses actual database column names (snake_case)
+const { data: roles } = await supabase
+  .from('user_roles')
+  .eq('user_id', user.id);  // snake_case - matches database
+```
+
+### Migration Example: Prisma to Supabase in Middleware
+
+**Before (Broken):**
+```typescript
+import prisma from '@/lib/prisma';
+
+const userRoles = await prisma.userRole.findMany({
+  where: { userId: user.id },
+  select: { role: true }
+});
+
+const hasRole = userRoles.some(ur =>
+  requiredRoles.includes(ur.role)
+);
+```
+
+**After (Fixed):**
+```typescript
+// No Prisma import needed
+
+const { data: userRoles, error } = await supabase
+  .from('user_roles')
+  .select('role')
+  .eq('user_id', user.id);
+
+if (error) {
+  logger.error({ error: error.message }, 'Failed to fetch roles');
+  return NextResponse.redirect(new URL('/unauthorized', req.url));
+}
+
+const hasRole = userRoles?.some(ur =>
+  requiredRoles.includes(ur.role)
+);
+```
+
+### Best Practices for Middleware Database Access
+
+1. **Always use Supabase client created in middleware** - don't import separate instances
+2. **Use direct table queries** - `supabase.from('table_name')`
+3. **Handle errors explicitly** - Edge runtime errors may differ from Node.js
+4. **Use snake_case for column names** - match actual database schema
+5. **Keep queries simple** - complex joins may be slower in Edge runtime
+6. **Consider caching** - Edge has limited memory, but responses are cached
+7. **Test thoroughly** - Edge runtime behavior differs from local Node.js
+
+### Common Pitfalls
+
+❌ **Importing Prisma client in middleware file**
+```typescript
+import prisma from '@/lib/prisma'; // Will fail!
+```
+
+❌ **Using camelCase for Supabase queries**
+```typescript
+.eq('userId', id) // Wrong - database uses user_id
+```
+
+❌ **Not handling Supabase errors**
+```typescript
+const { data } = await supabase.from('users').select();
+// Missing error handling!
+```
+
+❌ **Complex queries with multiple joins**
+```typescript
+// May be slow or fail in Edge runtime
+const { data } = await supabase
+  .from('users')
+  .select('*, roles(*), organizations(*, members(*))')
+```
+
+### Debugging Tips
+
+If you see these errors in middleware, you're likely using Prisma:
+- "Cannot find module '@prisma/client'"
+- "Module not found: Can't resolve 'fs'"
+- "Cannot find module 'crypto'"
+- "PrismaClient is unable to be run in the browser"
+
+**Solution:** Replace Prisma queries with Supabase direct database queries as shown above.
+
+### Reference Documentation
+
+- [Next.js Edge Runtime](https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes)
+- [Supabase JavaScript Client](https://supabase.com/docs/reference/javascript)
+- [Supabase Server-Side Auth (Next.js)](https://supabase.com/docs/guides/auth/server-side/nextjs?router=app&queryGroups=router)
 
