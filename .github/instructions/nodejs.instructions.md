@@ -880,3 +880,455 @@ export function UserEditDialog({ user, onSave }: UserEditDialogProps) {
 - Validate schema with `npx prisma validate`
 - Format schema with `npx prisma format`
 
+---
+
+## Next.js + Supabase Authentication Best Practices
+
+### Overview
+This section provides comprehensive best practices for implementing Supabase Auth in Next.js 15+ applications using the App Router and `@supabase/ssr` package.
+
+### Core Principles
+
+1. **Let Supabase Handle Session Management**: Don't implement custom session refresh logic
+2. **Proper Cookie Handling**: Follow Supabase's exact cookie patterns to prevent race conditions
+3. **PKCE Flow**: Always use PKCE (Proof Key for Code Exchange) for secure authentication
+4. **Auth Callbacks**: Implement proper callback routes for email verification and OAuth
+5. **Minimal Middleware**: Keep authentication middleware simple and focused
+
+### Required Packages
+
+```json
+{
+  "dependencies": {
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest"
+  }
+}
+```
+
+### Environment Configuration
+
+**Required Environment Variables**:
+```bash
+# .env.local
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Optional: For custom redirects
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+```
+
+**Validation with Zod**:
+```typescript
+// lib/env.ts
+import { z } from 'zod';
+
+const envSchema = z.object({
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  NEXT_PUBLIC_BASE_URL: z.string().url().optional(),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+### Supabase Client Configuration
+
+#### Server Client (SSR)
+
+**CRITICAL Configuration Points**:
+- `detectSessionInUrl: true` - Required for auth callbacks
+- `autoRefreshToken: true` - Explicit auto-refresh
+- `persistSession: true` - Ensure sessions persist across requests
+- `flowType: 'pkce'` - Use secure PKCE flow
+
+```typescript
+// lib/supabase/server.ts
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+
+export async function createClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Server Component - ignore cookie setting errors
+          }
+        },
+      },
+      auth: {
+        detectSessionInUrl: true,  // CRITICAL: Must be true
+        flowType: 'pkce',
+        autoRefreshToken: true,     // Explicit auto-refresh
+        persistSession: true,       // Persist across requests
+      },
+    }
+  );
+}
+```
+
+#### Client Component Client
+
+```typescript
+// lib/supabase/client.ts
+import { createBrowserClient } from '@supabase/ssr';
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+```
+
+### Middleware Pattern
+
+**CRITICAL: Simplified Middleware**
+- No custom session refresh logic
+- No manual expiry checking
+- Let Supabase SDK handle everything
+- No code between `createServerClient` and `getUser()`
+
+```typescript
+// middleware.ts
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+
+export async function middleware(req: NextRequest) {
+  let response = NextResponse.next({
+    request: req,
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          // Update request cookies
+          cookiesToSet.forEach(({ name, value }) =>
+            req.cookies.set(name, value)
+          );
+          
+          // Create new response with cookies
+          response = NextResponse.next({
+            request: req,
+          });
+          
+          // Set response cookies with proper options
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  // CRITICAL: Call getUser() immediately after client creation
+  // No code in between - this allows Supabase to handle refresh
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Optional: Redirect logic for protected routes
+  if (!user && req.nextUrl.pathname.startsWith('/dashboard')) {
+    const redirectUrl = new URL('/login', req.url);
+    redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  return response;
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
+```
+
+### Auth Callback Route
+
+**CRITICAL: Required for email verification, magic links, and password resets**
+
+```typescript
+// app/auth/confirm/route.ts
+import { createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = new URL(request.url);
+  const token_hash = searchParams.get('token_hash');
+  const type = searchParams.get('type');
+  const next = searchParams.get('next') ?? '/';
+
+  // Create redirect URL
+  const redirectTo = new URL(next, origin);
+
+  if (token_hash && type) {
+    const supabase = await createClient();
+
+    // Verify OTP token
+    const { error } = await supabase.auth.verifyOtp({
+      type: type as any,
+      token_hash,
+    });
+
+    if (!error) {
+      redirectTo.searchParams.delete('token_hash');
+      redirectTo.searchParams.delete('type');
+      return NextResponse.redirect(redirectTo);
+    }
+  }
+
+  // Return error page if verification fails
+  const errorUrl = new URL('/auth/error', origin);
+  errorUrl.searchParams.set('error', 'verification_failed');
+  return NextResponse.redirect(errorUrl);
+}
+```
+
+### Auth Error Page
+
+```typescript
+// app/auth/error/page.tsx
+import { Suspense } from 'react';
+
+function ErrorContent() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold">Authentication Error</h1>
+        <p className="mt-2 text-gray-600">
+          There was a problem with your authentication request.
+        </p>
+        <a href="/login" className="mt-4 inline-block text-blue-600">
+          Return to login
+        </a>
+      </div>
+    </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ErrorContent />
+    </Suspense>
+  );
+}
+```
+
+### Supabase Dashboard Configuration
+
+**CRITICAL: Configure these settings in your Supabase Dashboard**
+
+1. **Authentication → URL Configuration**:
+   - Add redirect URLs:
+     - Development: `http://localhost:3000/auth/confirm`
+     - Production: `https://yourdomain.com/auth/confirm`
+   - Add site URL: Your production domain
+
+2. **Authentication → Settings**:
+   - JWT expiry: 86400 seconds (24 hours) recommended
+   - Enable auto-refresh token: ✅ Checked
+   - Refresh token rotation: ✅ Checked (recommended)
+
+3. **Authentication → Email Templates**:
+   - Ensure confirmation URL uses: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
+   - Ensure magic link uses: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink`
+
+### Common Anti-Patterns to Avoid
+
+❌ **DON'T: Implement Custom Session Refresh**
+```typescript
+// BAD - Causes race conditions
+const SESSION_CONFIG = {
+  refreshThresholdSeconds: 7200,
+  maxRefreshAttempts: 3,
+};
+
+async function customRefresh(supabase: SupabaseClient) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session && needsRefresh(session)) {
+    await supabase.auth.refreshSession();
+  }
+}
+```
+
+❌ **DON'T: Disable Session Detection**
+```typescript
+// BAD - Breaks auth callbacks
+auth: {
+  detectSessionInUrl: false, // Don't do this
+}
+```
+
+❌ **DON'T: Add Code Between Client Creation and getUser()**
+```typescript
+// BAD - Interferes with automatic refresh
+const supabase = createServerClient(...);
+await someOtherFunction(); // Don't do this
+const { data: { user } } = await supabase.auth.getUser();
+```
+
+❌ **DON'T: Manually Check Session Expiry**
+```typescript
+// BAD - Duplicates Supabase's built-in logic
+if (session.expires_at < Date.now() / 1000) {
+  await supabase.auth.refreshSession();
+}
+```
+
+### Best Practices Checklist
+
+✅ **DO: Let Supabase Handle Everything**
+- Automatic session refresh
+- Token rotation
+- Cookie management
+
+✅ **DO: Follow Exact Cookie Patterns**
+```typescript
+cookies: {
+  getAll() {
+    return req.cookies.getAll();
+  },
+  setAll(cookiesToSet) {
+    cookiesToSet.forEach(({ name, value, options }) =>
+      response.cookies.set(name, value, options)
+    );
+  },
+}
+```
+
+✅ **DO: Implement Auth Callback Route**
+- Required for email verification
+- Required for magic links
+- Required for password resets
+
+✅ **DO: Configure Supabase Dashboard Properly**
+- Add redirect URLs
+- Set appropriate JWT expiry (24 hours recommended)
+- Enable auto-refresh token
+
+✅ **DO: Use Proper Error Handling**
+```typescript
+const { data, error } = await supabase.auth.signInWithPassword({
+  email,
+  password,
+});
+
+if (error) {
+  // Handle specific error cases
+  if (error.message.includes('Invalid login credentials')) {
+    return { error: 'Invalid email or password' };
+  }
+  return { error: error.message };
+}
+```
+
+### Session Monitoring and Debugging
+
+**Browser DevTools Inspection**:
+1. Open DevTools → Application → Cookies
+2. Look for cookies: `sb-<project>-auth-token`
+3. Verify attributes:
+   - HttpOnly: Yes
+   - Secure: Yes (production)
+   - SameSite: Lax
+   - Max-Age: 86400 (or configured JWT expiry)
+
+**Console Logging (Development Only)**:
+```typescript
+// Add to middleware for debugging
+console.log('User:', user?.id);
+console.log('Session expires:', session?.expires_at);
+console.log('Cookies:', req.cookies.getAll().map(c => c.name));
+```
+
+### Testing Checklist
+
+After implementing authentication, verify:
+- [ ] Users can sign up with email
+- [ ] Email verification links work
+- [ ] Users can log in
+- [ ] Sessions persist across page refreshes
+- [ ] Sessions persist for configured duration (24 hours)
+- [ ] Automatic refresh happens invisibly
+- [ ] Protected routes redirect properly
+- [ ] Users can log out successfully
+- [ ] Password reset flow works
+- [ ] Magic link login works (if enabled)
+
+### Performance Considerations
+
+1. **Cookie Size**: Supabase auth tokens are ~500-1000 bytes - acceptable
+2. **Middleware Performance**: Simplified middleware adds <10ms overhead
+3. **Session Refresh**: Happens automatically before token expires (no user impact)
+4. **Client-Side**: Use React Context for user state, not prop drilling
+
+### Security Considerations
+
+1. **Never expose service_role key** to client-side code
+2. **Use Row Level Security (RLS)** for all database tables
+3. **Validate auth state** server-side for sensitive operations
+4. **Implement rate limiting** on auth endpoints
+5. **Use HTTPS** in production (always)
+6. **Set secure cookie attributes** (handled by Supabase)
+
+### Troubleshooting Common Issues
+
+**Issue: Users logged out every minute**
+- ✅ Solution: Follow patterns above (no custom refresh logic)
+- ✅ Verify: `detectSessionInUrl: true` in server client
+- ✅ Check: Auth callback route exists at `/auth/confirm`
+
+**Issue: Email verification links don't work**
+- ✅ Check: Redirect URL configured in Supabase Dashboard
+- ✅ Verify: Auth callback route implemented correctly
+- ✅ Verify: Email template uses correct URL format
+
+**Issue: Sessions don't persist**
+- ✅ Check: Cookie `setAll()` implementation matches pattern
+- ✅ Verify: `persistSession: true` in client config
+- ✅ Check: Middleware matcher not excluding routes
+
+**Issue: Race conditions during refresh**
+- ✅ Solution: Remove all custom refresh logic
+- ✅ Verify: No code between `createServerClient` and `getUser()`
+- ✅ Check: Using Supabase SSR package (not deprecated auth-helpers)
+
+### Migration from Deprecated Packages
+
+If migrating from `@supabase/auth-helpers-nextjs`:
+
+1. Uninstall old package: `npm uninstall @supabase/auth-helpers-nextjs`
+2. Install new package: `npm install @supabase/ssr`
+3. Update imports: `@supabase/auth-helpers-nextjs` → `@supabase/ssr`
+4. Update client creation: Use `createServerClient` / `createBrowserClient`
+5. Update middleware: Follow patterns above
+6. Add auth callback route: Required for SSR package
+7. Test thoroughly: All auth flows should work
+
+### Resources
+
+- [Supabase Auth Documentation](https://supabase.com/docs/guides/auth)
+- [Supabase SSR Package](https://supabase.com/docs/guides/auth/server-side/nextjs)
+- [Next.js Middleware Documentation](https://nextjs.org/docs/app/building-your-application/routing/middleware)
+- [PKCE Flow Specification](https://oauth.net/2/pkce/)
+
