@@ -3,9 +3,14 @@ applyTo: '**'
 ---
 
 # Node.js Common Instructions
+## Runtime Selection
+- **Development**: Use Node.js LTS to maintain VS Code debugger compatibility and tooling support.
+- **Production**: Prefer Bun for containerized deployments and production environments where possible for better performance and smaller footprint.
+- **Compatibility**: Ensure code works with both runtimes; test with Node.js during development and Bun in staging/production.
+
 ## General Guidelines
 - Always use TypeScript (no new JavaScript source files).
-- Target current LTS Node.js; prefer ESM (`"type": "module"` in package.json).
+- Target current LTS Node.js for development; prefer ESM (`"type": "module"` in package.json).
 - Enable strictness: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
 - Fail CI on TypeScript, ESLint, and test errors; treat warnings as errors.
 - Prefer composition over inheritance; keep functions pure where practical.
@@ -32,7 +37,7 @@ applyTo: '**'
 - Logging: pino (structured JSON).
 - Testing: vitest or jest (pick one per repo).
 - Mocking: test framework built-ins; avoid brittle manual mocks.
-- HTTP server: fastify (preferred) or express (legacy only).
+- HTTP server: ElysiaJS (https://elysiajs.com) (preferred), fastify, hono, or express (legacy only).
 - HTTP client (if richer than fetch needed): undici.
 - Task scheduling / queues: bullmq (Redis-backed) when required.
 - Database (if using PostgreSQL): pg + drizzle-orm or prisma (choose one).
@@ -204,7 +209,31 @@ export const env = envSchema.parse(process.env);
 ## Deployment
 - Build step outputs to dist/ (no ts-node in production).
 - Source maps generated; upload to error tracking if used.
-- Immutable Docker images: multi-stage build, user non-root, minimal base (e.g. distroless/node or alpine with care).
+- **Runtime Selection**:
+  - Use Bun for containerized production deployments (smaller images, faster startup, better performance).
+  - Use Node.js LTS when Bun compatibility issues exist or when specific Node.js features are required.
+- **Docker Images**:
+  - Immutable multi-stage builds with non-root user.
+  - For Bun: use `oven/bun:1-alpine` or `oven/bun:1-distroless` as base.
+  - For Node.js: use distroless/node or alpine with care.
+  - Example multi-stage Dockerfile with Bun:
+    ```dockerfile
+    # Build stage
+    FROM oven/bun:1-alpine AS builder
+    WORKDIR /app
+    COPY package.json bun.lockb ./
+    RUN bun install --frozen-lockfile
+    COPY . .
+    RUN bun run build
+    
+    # Production stage
+    FROM oven/bun:1-distroless
+    WORKDIR /app
+    COPY --from=builder /app/dist ./dist
+    COPY --from=builder /app/node_modules ./node_modules
+    USER nonroot
+    CMD ["bun", "dist/index.js"]
+    ```
 
 ## Code Review Checklist (abbreviated)
 - Clear responsibility? Test coverage adequate?
