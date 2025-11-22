@@ -1364,24 +1364,71 @@ If migrating from `@supabase/auth-helpers-nextjs`:
 
 ---
 
+## Next.js 16: Middleware Deprecated - Use Proxy Instead
+
+### Breaking Change in Next.js 16
+
+**Next.js 16 deprecates middleware.ts in favor of proxy.ts** for routing and request handling.
+
+**Migration Required:**
+- `middleware.ts` → `proxy.ts`
+- Updated API and configuration
+- See: https://nextjs.org/docs/messages/middleware-to-proxy
+
+### Proxy Configuration
+
+**Create `proxy.ts` in project root:**
+
+```typescript
+// proxy.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export function proxy(req: NextRequest) {
+  // Your routing logic here
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
+```
+
+**Key Differences from Middleware:**
+- File name: `proxy.ts` instead of `middleware.ts`
+- Export function: `proxy()` instead of `middleware()`
+- Same Edge Runtime constraints apply
+- Same matcher configuration
+
+### Migration Checklist
+
+- [ ] Rename `middleware.ts` to `proxy.ts`
+- [ ] Rename exported function from `middleware` to `proxy`
+- [ ] Update imports if referencing middleware elsewhere
+- [ ] Test all routing and authentication flows
+- [ ] Update documentation and comments
+
+---
+
 ## Next.js Middleware & Database Access
 
 ### Critical: Edge Runtime Constraints
 
-**Next.js middleware runs in Edge Runtime**, which has significant limitations compared to Node.js runtime:
+**Next.js proxy/middleware runs in Edge Runtime**, which has significant limitations compared to Node.js runtime:
 
 - **Edge Runtime**: Limited Node.js APIs, optimized for low latency
 - **Node.js Runtime**: Full Node.js APIs (Server Components, Server Actions, API Routes)
 
-### Prisma ORM Cannot Run in Middleware
+### Prisma ORM Cannot Run in Proxy/Middleware
 
-**❌ NEVER use Prisma in Next.js middleware**
+**❌ NEVER use Prisma in Next.js proxy/middleware**
 
 ```typescript
 // ❌ BAD - This will cause runtime errors
 import prisma from '@/lib/prisma';
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   // This WILL FAIL in Edge runtime
   const user = await prisma.user.findUnique({
     where: { id: userId }
@@ -1389,7 +1436,7 @@ export async function middleware(req: NextRequest) {
 }
 ```
 
-**Why Prisma doesn't work in middleware:**
+**Why Prisma doesn't work in proxy/middleware:**
 - Prisma requires full Node.js APIs (fs, crypto, etc.)
 - Edge runtime only provides a subset of Node.js APIs
 - Prisma generates Node.js-specific code that cannot execute in Edge
@@ -1397,13 +1444,13 @@ export async function middleware(req: NextRequest) {
 
 ### Use Supabase Direct Database Queries Instead
 
-**✅ DO: Use Supabase's direct table API in middleware**
+**✅ DO: Use Supabase's direct table API in proxy/middleware**
 
 ```typescript
 // ✅ GOOD - Works in Edge runtime
 import { createServerClient } from '@supabase/ssr';
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const supabase = createServerClient(...);
   
   // Use Supabase direct queries - Edge compatible
@@ -1423,7 +1470,7 @@ export async function middleware(req: NextRequest) {
 - ✅ Server-side utilities called from above contexts
 
 **Use Supabase Direct Queries (Edge Runtime):**
-- ✅ Middleware (`middleware.ts`)
+- ✅ Proxy/Middleware (`proxy.ts` in Next.js 16+, `middleware.ts` in older versions)
 - ✅ Edge API Routes (with `export const runtime = 'edge'`)
 - ✅ Any code that needs to run in Edge runtime
 
@@ -1443,7 +1490,7 @@ const { data: roles } = await supabase
   .eq('user_id', user.id);  // snake_case - matches database
 ```
 
-### Migration Example: Prisma to Supabase in Middleware
+### Migration Example: Prisma to Supabase in Proxy/Middleware
 
 **Before (Broken):**
 ```typescript
@@ -1478,9 +1525,9 @@ const hasRole = userRoles?.some(ur =>
 );
 ```
 
-### Best Practices for Middleware Database Access
+### Best Practices for Proxy/Middleware Database Access
 
-1. **Always use Supabase client created in middleware** - don't import separate instances
+1. **Always use Supabase client created in proxy/middleware** - don't import separate instances
 2. **Use direct table queries** - `supabase.from('table_name')`
 3. **Handle errors explicitly** - Edge runtime errors may differ from Node.js
 4. **Use snake_case for column names** - match actual database schema
@@ -1490,7 +1537,7 @@ const hasRole = userRoles?.some(ur =>
 
 ### Common Pitfalls
 
-❌ **Importing Prisma client in middleware file**
+❌ **Importing Prisma client in proxy/middleware file**
 ```typescript
 import prisma from '@/lib/prisma'; // Will fail!
 ```
@@ -1516,7 +1563,7 @@ const { data } = await supabase
 
 ### Debugging Tips
 
-If you see these errors in middleware, you're likely using Prisma:
+If you see these errors in proxy/middleware, you're likely using Prisma:
 - "Cannot find module '@prisma/client'"
 - "Module not found: Can't resolve 'fs'"
 - "Cannot find module 'crypto'"
