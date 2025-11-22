@@ -40,7 +40,7 @@ applyTo: '**'
 - HTTP server: ElysiaJS (https://elysiajs.com) (preferred), fastify, hono, or express (legacy only).
 - HTTP client (if richer than fetch needed): undici.
 - Task scheduling / queues: bullmq (Redis-backed) when required.
-- Database (if using PostgreSQL): pg + drizzle-orm or prisma (choose one).
+- Database (if using PostgreSQL): Prefer Prisma ORM; defer to project if using pure supabase.js instead.
 - Caching: ioredis.
 - UUIDs: uuid (v7 when available).
 Unapproved: moment, request, deprecated or unmaintained packages.
@@ -1419,6 +1419,13 @@ export const config = {
 
 - **Edge Runtime**: Limited Node.js APIs, optimized for low latency
 - **Node.js Runtime**: Full Node.js APIs (Server Components, Server Actions, API Routes)
+
+### Database Access Strategy
+
+**Prefer Prisma ORM for PostgreSQL projects**, but respect existing project choices:
+- If project uses Prisma: Continue with Prisma patterns
+- If project uses pure supabase.js: Continue with Supabase client patterns
+- For new projects: Default to Prisma ORM unless specified otherwise
 
 ### Prisma ORM Cannot Run in Proxy/Middleware
 
