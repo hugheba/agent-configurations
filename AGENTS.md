@@ -25,6 +25,12 @@ All agent instruction files follow a centralized pattern:
 - Naming: `*-rules.md`
 - Links to: `../../.github/instructions/*.instructions.md`
 
+### Gemini (~/.gemini/)
+- Naming: `GEMINI.md` (single concatenated file)
+- Global location: `~/.gemini/GEMINI.md`
+- Local staging: `agent-configurations/.gemini/GEMINI.md`
+- Source: Concatenated from all `.github/instructions/*.instructions.md` files
+
 ## Adding New Agent Support
 
 1. Create agent directory (e.g., `.cursor/`, `.copilot/`, `.roo/`)
@@ -38,11 +44,19 @@ All agent instruction files follow a centralized pattern:
 touch .github/instructions/new-feature.instructions.md
 
 # 2. Create symlinks for each agent
-ln -s ../../.github/instructions/new-feature.instructions.md .amazonq/rules/new-feature-rules.md
-ln -s ../../.github/instructions/new-feature.instructions.md Cline/Rules/new-feature-rules.md
-ln -s ../../.github/instructions/new-feature.instructions.md .roo/rules/new-feature-rules.md
+./scripts/link-instruction.sh new-feature
 
-# 3. Add other agents as needed
+# 3. Rebuild Gemini configuration
+./scripts/build-gemini.sh
+```
+
+## Installing Global Configurations
+
+For agents that require global configuration (e.g., Gemini at `~/.gemini/`):
+
+```bash
+# Repository must be at ~/agent-configurations
+./scripts/install-global.sh
 ```
 
 This ensures single source of truth while maintaining agent-specific naming conventions.
