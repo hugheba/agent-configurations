@@ -598,6 +598,12 @@ Collaboration:
 ### 4.5 Code Quality Practices
 Reinforces: linting, formatting, static analysis, metrics tracking (complexity, dependency graph, build time), and refactor thresholds.
 
+**File Writing Best Practices:**
+- NEVER use shell commands to write files (e.g., `cat > /somefile.txt << 'EOF'`, `echo "text" > file.txt`)
+- Use proper file writing tools and APIs provided by your programming language or framework
+- Shell redirection is error-prone, difficult to maintain, and bypasses proper error handling
+- Use language-native file I/O operations for reliability and maintainability
+
 ---
 
 ## 5. Testing Strategy
