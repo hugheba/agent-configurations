@@ -11,7 +11,8 @@ Always use context7 to get latest documentation for library or framework specifi
 1. Overview & Goals
   1.1 Goals
   1.2 Core Principles
-  1.3 Scope / Applies To
+  1.3 Twelve-Factor App Methodology
+  1.4 Scope / Applies To
 2. Planning & Requirements
   2.1 Feature Flags (Strategy & Governance)
   2.2 Branching & Versioning
@@ -77,7 +78,96 @@ Consistency across polyglot repos; fast, reproducible, secure builds; high-signa
 9. Performance measured, not guessed (add benchmarks before tuning).
 10. Shift‑left on quality: reject code that cannot pass native / strict toolchains when required.
 
-### 1.3 Scope / Applies To
+### 1.3 Twelve-Factor App Methodology
+All applications MUST follow the [Twelve-Factor App](https://12factor.net/) methodology for building modern, scalable, maintainable software-as-a-service applications.
+
+#### The Twelve Factors
+
+1. **Codebase** - One codebase tracked in version control, many deploys
+   - Single repo per app (or monorepo with clear boundaries)
+   - Same codebase deployed to dev, staging, production
+   - Different versions may be active in different environments
+
+2. **Dependencies** - Explicitly declare and isolate dependencies
+   - Never rely on implicit system-wide packages
+   - Use lockfiles (package-lock.json, Cargo.lock, poetry.lock, gradle.lockfile)
+   - Vendoring optional but declaration mandatory
+   - Dependency isolation via containers, virtual environments, or bundlers
+
+3. **Config** - Store config in the environment
+   - Strict separation of config from code
+   - Config varies between deploys; code does not
+   - Use environment variables for config (not config files in repo)
+   - Never commit secrets, credentials, or environment-specific values
+
+4. **Backing Services** - Treat backing services as attached resources
+   - Databases, message queues, caches, SMTP, S3 are all attached resources
+   - Access via URL/credentials stored in config
+   - Swap local MySQL for AWS RDS without code changes
+   - No distinction between local and third-party services
+
+5. **Build, Release, Run** - Strictly separate build and run stages
+   - **Build**: Convert code to executable bundle (compile, bundle assets)
+   - **Release**: Combine build with config; immutable, uniquely versioned
+   - **Run**: Execute release in environment
+   - Releases are append-only; rollback by deploying previous release
+
+6. **Processes** - Execute the app as one or more stateless processes
+   - Processes are stateless and share-nothing
+   - Persistent data stored in stateful backing service (database, cache)
+   - Never assume memory/filesystem persists between requests
+   - Session state → Redis, Memcached, or database (never local memory)
+
+7. **Port Binding** - Export services via port binding
+   - App is self-contained; does not rely on runtime injection of webserver
+   - Bind to port and listen for requests (HTTP, gRPC, etc.)
+   - One app can become another app's backing service via URL
+
+8. **Concurrency** - Scale out via the process model
+   - Architect for horizontal scaling (add more processes)
+   - Different workloads → different process types (web, worker, scheduler)
+   - Never daemonize; rely on process manager (systemd, Kubernetes, PM2)
+   - Stateless processes enable simple, reliable scaling
+
+9. **Disposability** - Maximize robustness with fast startup and graceful shutdown
+   - Processes start quickly (seconds, not minutes)
+   - Shut down gracefully on SIGTERM (finish current request, release resources)
+   - Handle unexpected termination (crash-only design)
+   - Workers return unfinished jobs to queue on shutdown
+
+10. **Dev/Prod Parity** - Keep development, staging, and production as similar as possible
+    - Minimize time gap (deploy hours after code written, not weeks)
+    - Minimize personnel gap (developers deploy their own code)
+    - Minimize tools gap (same backing services in all environments)
+    - Use containers/devcontainers to ensure environment consistency
+
+11. **Logs** - Treat logs as event streams
+    - App never concerns itself with routing or storage of logs
+    - Write unbuffered to stdout (one event per line)
+    - Execution environment captures, routes, archives streams
+    - Structured logging (JSON) preferred for machine parsing
+
+12. **Admin Processes** - Run admin/management tasks as one-off processes
+    - Database migrations, console sessions, one-time scripts
+    - Run against same release/config as regular processes
+    - Ship admin code with application code
+    - Use same dependency isolation (same container/environment)
+
+#### Compliance Checklist
+- [ ] Single codebase in version control
+- [ ] All dependencies explicitly declared with lockfile
+- [ ] Configuration via environment variables only
+- [ ] Backing services configurable via connection strings
+- [ ] Build artifacts immutable and versioned
+- [ ] Processes are stateless; state in external stores
+- [ ] Service exported via port binding
+- [ ] Horizontally scalable architecture
+- [ ] Fast startup, graceful shutdown
+- [ ] Dev/staging/prod environments are similar
+- [ ] Logs written to stdout as structured events
+- [ ] Admin tasks run as one-off processes
+
+### 1.4 Scope / Applies To
 Languages & ecosystems: Java / Kotlin / Groovy (Gradle build scripts only), Node.js (TypeScript), Python, Rust. Tooling also covers containers & infrastructure automation.
 
 ---
