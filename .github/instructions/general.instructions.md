@@ -2032,6 +2032,7 @@ Non-Negotiables:
 - No direct secrets / credentials in repo.
 - No unreviewed generated code (document generation source).
 - After any schema, code, or configuration changes, verify the application builds, compiles, passes linting, and all unit tests succeed before considering the change complete.
+- Never disable or bypass pre-commit hooks to force a commit. If hooks are failing, fix the underlying issues rather than circumventing quality gates.
 
 Exceptions:
 - Any deviation (e.g., skipping native build, adding heavy framework) requires ADR with:

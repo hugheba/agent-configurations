@@ -4,15 +4,24 @@ applyTo: '**'
 
 # Node.js Common Instructions
 ## Runtime Selection
-- **Development**: Use Node.js LTS to maintain VS Code debugger compatibility and tooling support.
-- **Production**: Prefer Bun for containerized deployments and production environments where possible for better performance and smaller footprint.
-- **Compatibility**: Ensure code works with both runtimes; test with Node.js during development and Bun in staging/production.
+- **Default Runtime**: Prefer Bun as the primary runtime and package manager for all Node.js projects (faster, all-in-one tool)
+- **Project Configuration**: Check the project's `AGENTS.md` file for runtime specification. If not specified, ask which runtime to use and update `AGENTS.md`
+- **Package Manager Commands**:
+  - Use `bun` instead of `npm` or `yarn`
+  - Use `bunx` or `bun x` instead of `npx` for running tools
+  - Use `bun install` instead of `npm install`
+  - Use `bun run` instead of `npm run`
+- **Development**: Use Bun for development unless project requires Node.js LTS for specific tooling (e.g., VS Code debugger compatibility issues)
+- **Production**: Use Bun for containerized deployments and production environments for better performance and smaller footprint
+- **Compatibility**: Ensure code works with both runtimes where possible; test with the runtime specified in `AGENTS.md`
 
 ## General Guidelines
 - Always use TypeScript (no new JavaScript source files).
-- Target current LTS Node.js for development; prefer ESM (`"type": "module"` in package.json).
+- Check the project's `AGENTS.md` file to determine whether to use Bun or Node.js. If not specified, prefer Bun (bunx or bun x) for development tooling.
+- Ensure Node.js LTS compatibility for portability; prefer ESM (`"type": "module"` in package.json).
 - Enable strictness: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
 - Fail CI on TypeScript, ESLint, and test errors; treat warnings as errors.
+- Never relax TypeScript strictness settings or disable linting rules to resolve errors. Always fix the underlying code issues rather than lowering quality standards.
 - Prefer composition over inheritance; keep functions pure where practical.
 - Enforce single responsibility; keep files small and cohesive.
 - Never ignore promise rejections; use `await` or `.catch`.
