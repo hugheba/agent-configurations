@@ -20,6 +20,13 @@ applyTo: '**'
 - Check the project's `AGENTS.md` file to determine whether to use Bun or Node.js. If not specified, prefer Bun (bunx or bun x) for development tooling.
 - Ensure Node.js LTS compatibility for portability; prefer ESM (`"type": "module"` in package.json).
 - Enable strictness: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
+- **CRITICAL: Zero TypeScript and ESLint errors tolerance**:
+  - Every line of code MUST pass TypeScript compilation (`tsc --noEmit`) with zero errors
+  - Every line of code MUST pass ESLint with zero errors
+  - Fix all TypeScript and ESLint errors immediately as you write code, line by line
+  - Never commit code with TypeScript or ESLint errors
+  - Never attempt to build with TypeScript or ESLint errors
+  - Run `tsc --noEmit` and `eslint .` before every commit
 - Fail CI on TypeScript, ESLint, and test errors; treat warnings as errors.
 - Never relax TypeScript strictness settings or disable linting rules to resolve errors. Always fix the underlying code issues rather than lowering quality standards.
 - Prefer composition over inheritance; keep functions pure where practical.
@@ -189,16 +196,49 @@ export const env = envSchema.parse(process.env);
 - No network calls in unit tests; mock at adapter boundary only.
 - Snapshot tests sparingly (stable, low-noise outputs).
 
+## Development Workflow
+- **Before writing any code**:
+  1. Ensure existing code passes `tsc --noEmit` and `eslint .`
+  2. Fix any existing errors before making changes
+- **While writing code**:
+  1. Run `tsc --noEmit` frequently (ideally on save)
+  2. Run `eslint .` frequently (ideally on save)
+  3. Fix errors immediately - never accumulate technical debt
+- **Before committing**:
+  1. Run `tsc --noEmit` - must pass with zero errors
+  2. Run `eslint .` - must pass with zero errors
+  3. Run tests - must pass
+  4. Pre-commit hooks should block if any checks fail
+
 ## Git / CI
 - Conventional Commits (feat, fix, chore, refactor, docs, test).
 - Enforce lint, type-check, test on pull requests.
+- **CI MUST fail on any TypeScript or ESLint errors**.
 - Auto-generate changelog via commit messages.
 - Use semantic versioning.
 
 ## Linting / Formatting
+- **MANDATORY: Zero errors before commit or build**:
+  - Run `tsc --noEmit` to check for TypeScript errors
+  - Run `eslint .` to check for linting errors
+  - Fix ALL errors before proceeding
+  - No exceptions - every error must be resolved
 - ESLint with @typescript-eslint; no unused variables (`noUnusedLocals` true).
 - Prettier for formatting; run pre-commit (lint-staged + husky).
 - Disallow default exports except framework-required.
+- Configure pre-commit hooks to block commits with TypeScript or ESLint errors:
+  ```json
+  // package.json
+  {
+    "lint-staged": {
+      "*.{ts,tsx}": [
+        "tsc --noEmit",
+        "eslint --max-warnings 0",
+        "prettier --write"
+      ]
+    }
+  }
+  ```
 
 ## Documentation
 - README: setup, run, test, build, deploy steps.
@@ -245,6 +285,11 @@ export const env = envSchema.parse(process.env);
     ```
 
 ## Code Review Checklist (abbreviated)
+- **CRITICAL: Zero TypeScript/ESLint errors**?
+  - [ ] `tsc --noEmit` passes with zero errors
+  - [ ] `eslint .` passes with zero errors
+  - [ ] No TypeScript `any` types unless explicitly justified
+  - [ ] No ESLint disable comments unless documented in PR
 - Clear responsibility? Test coverage adequate?
 - No TODO without linked issue.
 - No secret values / credentials in code.
