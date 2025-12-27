@@ -809,6 +809,13 @@ Collaboration:
 ### 4.5 Code Quality Practices
 Reinforces: linting, formatting, static analysis, metrics tracking (complexity, dependency graph, build time), and refactor thresholds.
 
+**Markdown Quality Standards:**
+- All markdown files MUST be linted with markdownlint at creation
+- Markdown files must show ZERO errors from markdownlint before commit
+- Configure markdownlint rules in `.markdownlint.json` or `.markdownlintrc` at project root
+- Run `markdownlint **/*.md` as part of pre-commit hooks and CI pipeline
+- Treat markdown quality with the same rigor as code quality
+
 **File Writing Best Practices:**
 - NEVER use shell commands to write files (e.g., `cat > /somefile.txt << 'EOF'`, `echo "text" > file.txt`)
 - Use proper file writing tools and APIs provided by your programming language or framework
