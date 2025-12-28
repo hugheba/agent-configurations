@@ -177,9 +177,9 @@ Always use context7 to get latest documentation for library or framework specifi
    9.2 Non-Negotiables
    9.3 Exceptions Process
 1. Appendices & Rationale
-    10.1 Feature Flags Deep Dive (Original Detailed Section)
-    10.2 Rationale: Mandatory Pre-Change Test Requirement
-    10.3 Glossary / Abbreviations
+   10.1 Feature Flags Deep Dive (Original Detailed Section)
+   10.2 Rationale: Mandatory Pre-Change Test Requirement
+   10.3 Glossary / Abbreviations
 
 ---
 
@@ -209,75 +209,64 @@ All applications MUST follow the [Twelve-Factor App](https://12factor.net/) meth
 #### The Twelve Factors
 
 1. **Codebase** - One codebase tracked in version control, many deploys
-
     - Single repo per app (or monorepo with clear boundaries)
     - Same codebase deployed to dev, staging, production
     - Different versions may be active in different environments
 
 1. **Dependencies** - Explicitly declare and isolate dependencies
-
     - Never rely on implicit system-wide packages
     - Use lockfiles (package-lock.json, Cargo.lock, poetry.lock, gradle.lockfile)
     - Vendoring optional but declaration mandatory
     - Dependency isolation via containers, virtual environments, or bundlers
 
 1. **Config** - Store config in the environment
-
     - Strict separation of config from code
     - Config varies between deploys; code does not
     - Use environment variables for config (not config files in repo)
     - Never commit secrets, credentials, or environment-specific values
 
 1. **Backing Services** - Treat backing services as attached resources
-
     - Databases, message queues, caches, SMTP, S3 are all attached resources
     - Access via URL/credentials stored in config
     - Swap local MySQL for AWS RDS without code changes
     - No distinction between local and third-party services
 
 1. **Build, Release, Run** - Strictly separate build and run stages
-
     - **Build**: Convert code to executable bundle (compile, bundle assets)
     - **Release**: Combine build with config; immutable, uniquely versioned
     - **Run**: Execute release in environment
     - Releases are append-only; rollback by deploying previous release
 
 1. **Processes** - Execute the app as one or more stateless processes
-
     - Processes are stateless and share-nothing
     - Persistent data stored in stateful backing service (database, cache)
     - Never assume memory/filesystem persists between requests
     - Session state → Redis, Memcached, or database (never local memory)
 
 1. **Port Binding** - Export services via port binding
-
     - App is self-contained; does not rely on runtime injection of webserver
     - Bind to port and listen for requests (HTTP, gRPC, etc.)
     - One app can become another app's backing service via URL
 
 1. **Concurrency** - Scale out via the process model
-
     - Architect for horizontal scaling (add more processes)
     - Different workloads → different process types (web, worker, scheduler)
     - Never daemonize; rely on process manager (systemd, Kubernetes, PM2)
     - Stateless processes enable simple, reliable scaling
 
 1. **Disposability** - Maximize robustness with fast startup and graceful shutdown
-
     - Processes start quickly (seconds, not minutes)
     - Shut down gracefully on SIGTERM (finish current request, release resources)
     - Handle unexpected termination (crash-only design)
     - Workers return unfinished jobs to queue on shutdown
 
 1. **Dev/Prod Parity** - Keep development, staging, and production as similar as possible
-
     - Minimize time gap (deploy hours after code written, not weeks)
     - Minimize personnel gap (developers deploy their own code)
     - Minimize tools gap (same backing services in all environments)
     - Use containers/devcontainers to ensure environment consistency
 
 1. **Logs** - Treat logs as event streams
-
     - App never concerns itself with routing or storage of logs
     - Write unbuffered to stdout (one event per line)
     - Execution environment captures, routes, archives streams
@@ -355,20 +344,20 @@ Retrieval & Caching:
 Evaluation:
 
 - Central FeatureFlagService exposes pure functions:
-  - isEnabled(flag: BooleanFlag, subject?: Subject)
-  - variant(flag: EnumFlag, subject?: Subject)
+    - isEnabled(flag: BooleanFlag, subject?: Subject)
+    - variant(flag: EnumFlag, subject?: Subject)
 - Percent rollout:
-  - Stable hash = SHA-256(salt + ":" + subjectKey) % 100 < percent.
-  - Document which subject key (userId, orgId) is applied; keep consistent to prevent flicker.
+    - Stable hash = SHA-256(salt + ":" + subjectKey) % 100 < percent.
+    - Document which subject key (userId, orgId) is applied; keep consistent to prevent flicker.
 - Multivariate: store selected variant explicitly; avoid branching on multiple flags for single concern (introduce composed “mode” enum instead).
 
 Testing:
 
 - Provide a TestFlagProvider allowing explicit overrides (no global mutation; pass via dependency injection).
 - Unit tests cover:
-  - Hash boundary conditions (0%, 100%).
-  - Expired flags produce warning (log) and default to safe value.
-  - Schema validation rejects unknown types.
+    - Hash boundary conditions (0%, 100%).
+    - Expired flags produce warning (log) and default to safe value.
+    - Schema validation rejects unknown types.
 - Integration test ensures AppConfig retrieval + parsing + fallback path.
 
 Governance:
@@ -397,7 +386,7 @@ Observability:
 
 - Expose metrics: flags_evaluated_total (counter), flag_rollout_percent (gauge per flag), flag_snapshot_age_seconds.
 - Emit structured log entry on each new snapshot: { event: "featureFlagsUpdated", version, changed: [ids] }.
-    Applies To (repeat for clarity in feature flag context): Java, Kotlin, Groovy (Gradle build scripts only), Node.js (TypeScript), Python, Rust.
+  Applies To (repeat for clarity in feature flag context): Java, Kotlin, Groovy (Gradle build scripts only), Node.js (TypeScript), Python, Rust.
 
 ### 2.2 Branching & Versioning
 
@@ -426,10 +415,10 @@ Use monorepo when you have:
 
 - Structure by domain + technology layer (e.g., services/, libs/, tooling/).
 - Use consistent directory structure:
-  - `/apps` or `/services` - deployable applications
-  - `/shared` or `/common` or `/libs` - shared libraries
-  - `/infrastructure` - infrastructure as code (Terraform, etc.)
-  - `/tools` - build scripts and utilities
+    - `/apps` or `/services` - deployable applications
+    - `/shared` or `/common` or `/libs` - shared libraries
+    - `/infrastructure` - infrastructure as code (Terraform, etc.)
+    - `/tools` - build scripts and utilities
 - Shared standards: root lint, formatting, security scan configs.
 - Central dependency/version catalogs (Gradle version catalog, npm workspaces, pnpm/turborepo, Cargo workspaces).
 - Enforce isolation & no circular dependencies (automated graph validation).
@@ -558,7 +547,6 @@ Devcontainers:
               hooks:
                   - id: detect-secrets
                     args: ['--baseline', '.secrets.baseline']
-
         ```
 
 1. **Gitignore Protection**: Ensure `.gitignore` includes:
@@ -592,15 +580,14 @@ Devcontainers:
         PORT: z.coerce.number().default(3000),
     });
     export const config = ConfigSchema.parse(process.env);
-
     ```
 
 ##### Documentation Requirements
 
 - README must include "Configuration" section listing:
-  - All required environment variables
-  - Type, purpose, and example value for each
-  - Where to obtain sensitive values (e.g., "Request API_KEY from #platform-team")
+    - All required environment variables
+    - Type, purpose, and example value for each
+    - Where to obtain sensitive values (e.g., "Request API_KEY from #platform-team")
 - Inline comments in `.env.example` for non-obvious variables
 - Document any variable dependencies (e.g., "If REDIS_ENABLED=true, REDIS_URL required")
 
@@ -728,7 +715,7 @@ Merging & Releases:
 
 ##### JSDoc (JavaScript/TypeScript)
 
-```javascript
+````javascript
 /**
 * Calculates user permissions based on role
 * @param {string} userId - The user identifier
@@ -2628,3 +2615,4 @@ Stages (gated, fail-fast):
 - Standups / incident bridges: summarized back into issues.
 - Decision log maintained (CHANGELOG + ADR index).
 - Knowledge sharing: scheduled tech review sessions; recordings archived.
+````
