@@ -6,83 +6,83 @@ applyTo: '**'
 
 ## Runtime Selection
 
--   **Default Runtime**: Prefer Bun as the primary runtime and package manager for all Node.js projects (faster, all-in-one tool)
--   **Project Configuration**: Check the project's `AGENTS.md` file for runtime specification. If not specified, ask which runtime to use and update `AGENTS.md`
--   **Package Manager Commands**:
-    -   Use `bun` instead of `npm` or `yarn`
-    -   Use `bunx` or `bun x` instead of `npx` for running tools
-    -   Use `bun install` instead of `npm install`
-    -   Use `bun run` instead of `npm run`
--   **Development**: Use Bun for development unless project requires Node.js LTS for specific tooling (e.g., VS Code debugger compatibility issues)
--   **Production**: Use Bun for containerized deployments and production environments for better performance and smaller footprint
--   **Compatibility**: Ensure code works with both runtimes where possible; test with the runtime specified in `AGENTS.md`
+- **Default Runtime**: Prefer Bun as the primary runtime and package manager for all Node.js projects (faster, all-in-one tool)
+- **Project Configuration**: Check the project's `AGENTS.md` file for runtime specification. If not specified, ask which runtime to use and update `AGENTS.md`
+- **Package Manager Commands**:
+  - Use `bun` instead of `npm` or `yarn`
+  - Use `bunx` or `bun x` instead of `npx` for running tools
+  - Use `bun install` instead of `npm install`
+  - Use `bun run` instead of `npm run`
+- **Development**: Use Bun for development unless project requires Node.js LTS for specific tooling (e.g., VS Code debugger compatibility issues)
+- **Production**: Use Bun for containerized deployments and production environments for better performance and smaller footprint
+- **Compatibility**: Ensure code works with both runtimes where possible; test with the runtime specified in `AGENTS.md`
 
 ## General Guidelines
 
--   Always use TypeScript (no new JavaScript source files).
--   Check the project's `AGENTS.md` file to determine whether to use Bun or Node.js. If not specified, prefer Bun (bunx or bun x) for development tooling.
--   Ensure Node.js LTS compatibility for portability; prefer ESM (`"type": "module"` in package.json).
--   Enable strictness: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
--   **CRITICAL: Zero TypeScript and ESLint errors tolerance**:
-    -   Every line of code MUST pass TypeScript compilation (`tsc --noEmit`) with zero errors
-    -   Every line of code MUST pass ESLint with zero errors
-    -   Fix all TypeScript and ESLint errors immediately as you write code, line by line
-    -   Never commit code with TypeScript or ESLint errors
-    -   Never attempt to build with TypeScript or ESLint errors
-    -   Run `tsc --noEmit` and `eslint .` before every commit
--   Fail CI on TypeScript, ESLint, and test errors; treat warnings as errors.
--   Never relax TypeScript strictness settings or disable linting rules to resolve errors. Always fix the underlying code issues rather than lowering quality standards.
--   Prefer composition over inheritance; keep functions pure where practical.
--   Enforce single responsibility; keep files small and cohesive.
--   Never ignore promise rejections; use `await` or `.catch`.
--   Use async/await; avoid raw callback patterns.
--   Validate all external input (e.g. API, env vars) early.
--   Centralize configuration; no hard-coded magic values.
+- Always use TypeScript (no new JavaScript source files).
+- Check the project's `AGENTS.md` file to determine whether to use Bun or Node.js. If not specified, prefer Bun (bunx or bun x) for development tooling.
+- Ensure Node.js LTS compatibility for portability; prefer ESM (`"type": "module"` in package.json).
+- Enable strictness: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"exactOptionalPropertyTypes": true`.
+- **CRITICAL: Zero TypeScript and ESLint errors tolerance**:
+  - Every line of code MUST pass TypeScript compilation (`tsc --noEmit`) with zero errors
+  - Every line of code MUST pass ESLint with zero errors
+  - Fix all TypeScript and ESLint errors immediately as you write code, line by line
+  - Never commit code with TypeScript or ESLint errors
+  - Never attempt to build with TypeScript or ESLint errors
+  - Run `tsc --noEmit` and `eslint .` before every commit
+- Fail CI on TypeScript, ESLint, and test errors; treat warnings as errors.
+- Never relax TypeScript strictness settings or disable linting rules to resolve errors. Always fix the underlying code issues rather than lowering quality standards.
+- Prefer composition over inheritance; keep functions pure where practical.
+- Enforce single responsibility; keep files small and cohesive.
+- Never ignore promise rejections; use `await` or `.catch`.
+- Use async/await; avoid raw callback patterns.
+- Validate all external input (e.g. API, env vars) early.
+- Centralize configuration; no hard-coded magic values.
 
 ## Project Structure (example)
 
--   src/
-    -   domain/ (pure logic)
-    -   services/ (I/O boundaries)
-    -   adapters/ (wrappers: HTTP, DB, queues)
-    -   infra/ (configuration, logging)
-    -   index.ts (composition root)
--   tests/ mirrors src structure.
+- src/
+  - domain/ (pure logic)
+  - services/ (I/O boundaries)
+  - adapters/ (wrappers: HTTP, DB, queues)
+  - infra/ (configuration, logging)
+  - index.ts (composition root)
+- tests/ mirrors src structure.
 
 ## Approved Libraries / APIs
 
--   HTTP / Fetch: Built-in global fetch (Node 18+). For advanced cases: undici.
--   Dates / Time: date-fns (avoid moment).
--   Validation: zod.
--   Environment loading: dotenv (only in dev), never commit .env.
--   Logging: pino (structured JSON).
--   Testing: vitest or jest (pick one per repo).
--   Mocking: test framework built-ins; avoid brittle manual mocks.
--   HTTP server: ElysiaJS (https://elysiajs.com) (preferred), fastify, hono, or express (legacy only).
--   HTTP client (if richer than fetch needed): undici.
--   Task scheduling / queues: bullmq (Redis-backed) when required.
--   Database (if using PostgreSQL): Prefer Prisma ORM; defer to project if using pure supabase.js instead.
--   Caching: ioredis.
--   UUIDs: uuid (v7 when available).
+- HTTP / Fetch: Built-in global fetch (Node 18+). For advanced cases: undici.
+- Dates / Time: date-fns (avoid moment).
+- Validation: zod.
+- Environment loading: dotenv (only in dev), never commit .env.
+- Logging: pino (structured JSON).
+- Testing: vitest or jest (pick one per repo).
+- Mocking: test framework built-ins; avoid brittle manual mocks.
+- HTTP server: ElysiaJS (<https://elysiajs.com>) (preferred), fastify, hono, or express (legacy only).
+- HTTP client (if richer than fetch needed): undici.
+- Task scheduling / queues: bullmq (Redis-backed) when required.
+- Database (if using PostgreSQL): Prefer Prisma ORM; defer to project if using pure supabase.js instead.
+- Caching: ioredis.
+- UUIDs: uuid (v7 when available).
     Unapproved: moment, request, deprecated or unmaintained packages.
 
 ## TypeScript Conventions
 
--   Target TypeScript 6.0+ for enhanced schema-based type inference and validation
--   Use path aliases via tsconfig `paths` instead of deep relative imports.
--   Export types separately when helpful (`export type { Foo }`).
--   Narrow unknown/any at boundaries only; forbid implicit any.
--   Prefer readonly for immutable shapes; use `as const` intentionally.
--   Avoid enums; use union string literals + type guards.
--   Leverage TypeScript 6.0's automatic type inference with Zod schemas (no manual `z.infer<>` needed)
--   Use Zod for runtime validation at all data boundaries (APIs, user input, environment variables)
+- Target TypeScript 6.0+ for enhanced schema-based type inference and validation
+- Use path aliases via tsconfig `paths` instead of deep relative imports.
+- Export types separately when helpful (`export type { Foo }`).
+- Narrow unknown/any at boundaries only; forbid implicit any.
+- Prefer readonly for immutable shapes; use `as const` intentionally.
+- Avoid enums; use union string literals + type guards.
+- Leverage TypeScript 6.0's automatic type inference with Zod schemas (no manual `z.infer<>` needed)
+- Use Zod for runtime validation at all data boundaries (APIs, user input, environment variables)
 
 ## Runtime Validation with Zod
 
--   **Validate at boundaries**: All external data (API responses, user input, environment variables) MUST be validated with Zod
--   **TypeScript 6.0 integration**: Use automatic type inference instead of manual `z.infer<typeof schema>`
--   **Fail fast**: Validate environment variables and critical configuration at startup
--   **API response validation**: Never trust external APIs - validate all responses to catch breaking changes early
+- **Validate at boundaries**: All external data (API responses, user input, environment variables) MUST be validated with Zod
+- **TypeScript 6.0 integration**: Use automatic type inference instead of manual `z.infer<typeof schema>`
+- **Fail fast**: Validate environment variables and critical configuration at startup
+- **API response validation**: Never trust external APIs - validate all responses to catch breaking changes early
 
 **Environment Variable Validation**:
 
@@ -97,7 +97,8 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env); // Fail fast if invalid
-```
+
+```text
 
 **API Response Validation**:
 
@@ -121,7 +122,8 @@ async function fetchPosts() {
     const json = await res.json();
     return apiResponseSchema.parse(json); // Crash early if API breaks contract
 }
-```
+
+```text
 
 **TypeScript 6.0 Function Signatures**:
 
@@ -137,54 +139,56 @@ function saveUser(data: typeof userSchema._input) {
     const validated = userSchema.parse(data);
     // validated is now fully typed without manual inference
 }
-```
+
+```text
 
 ## Error Handling
 
--   Throw domain-specific error classes (`extends Error`) with a code property.
--   Never throw strings.
--   Wrap external failures; do not leak low-level error types beyond adapters.
--   Provide a global process-level handler logging and performing graceful shutdown.
+- Throw domain-specific error classes (`extends Error`) with a code property.
+- Never throw strings.
+- Wrap external failures; do not leak low-level error types beyond adapters.
+- Provide a global process-level handler logging and performing graceful shutdown.
 
 ## Logging
 
--   Structured logs (JSON); no console.log outside quick scripts.
--   Include correlation/request IDs and error.stack.
--   Redact secrets (tokens, passwords, keys).
+- Structured logs (JSON); no console.log outside quick scripts.
+- Include correlation/request IDs and error.stack.
+- Redact secrets (tokens, passwords, keys).
 
 ## Configuration
 
--   Load once in infra layer.
--   Validate with zod before exporting a typed config object.
--   No dynamic mutation after bootstrap.
+- Load once in infra layer.
+- Validate with zod before exporting a typed config object.
+- No dynamic mutation after bootstrap.
 
 ## Environment Variables & .env Files
 
--   Use minimal .env files; prefer platform-native configuration (AWS Systems Manager, Amplify env vars).
--   Never commit .env files; add to .gitignore.
--   Provide .env.example with placeholder values only.
--   Framework-specific: only use what the framework requires.
+- Use minimal .env files; prefer platform-native configuration (AWS Systems Manager, Amplify env vars).
+- Never commit .env files; add to .gitignore.
+- Provide .env.example with placeholder values only.
+- Framework-specific: only use what the framework requires.
 
 ### Next.js Environment Variables
 
 Next.js requires only:
 
--   `.env.local` for local development (gitignored)
--   `.env.example` for documentation (committed)
+- `.env.local` for local development (gitignored)
+- `.env.example` for documentation (committed)
 
 **Minimal .env.local example**:
 
-```
+```text
 DATABASE_URL="postgresql://user:pass@localhost:5432/db"
 NEXT_PUBLIC_API_URL="http://localhost:3000"
-```
+
+```text
 
 **Rules**:
 
--   `NEXT_PUBLIC_*` prefix exposes to browser (use sparingly)
--   All other vars are server-only
--   Validate all env vars with Zod at startup
--   Never use .env.development, .env.production, or .env.test unless absolutely necessary
+- `NEXT_PUBLIC_*` prefix exposes to browser (use sparingly)
+- All other vars are server-only
+- Validate all env vars with Zod at startup
+- Never use .env.development, .env.production, or .env.test unless absolutely necessary
 
 **Validation example**:
 
@@ -198,62 +202,64 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
-```
+
+```text
 
 ## Security
 
--   Keep dependencies updated (automation via dependabot / renovate).
--   Run `npm audit` in CI; address high severity promptly.
--   Use parameterized queries / ORM safeguards; never string-concatenate SQL.
--   Sanitize and validate all external input.
+- Keep dependencies updated (automation via dependabot / renovate).
+- Run `npm audit` in CI; address high severity promptly.
+- Use parameterized queries / ORM safeguards; never string-concatenate SQL.
+- Sanitize and validate all external input.
 
 ## Performance
 
--   Avoid premature optimization; measure with benchmarks / profiling.
--   Stream large payloads; avoid loading entire files/blobs into memory.
--   Use AbortController with fetch for timeouts and cancellation.
+- Avoid premature optimization; measure with benchmarks / profiling.
+- Stream large payloads; avoid loading entire files/blobs into memory.
+- Use AbortController with fetch for timeouts and cancellation.
 
 ## Testing
 
--   70%+ meaningful coverage; prefer behavior tests over implementation details.
--   Use: unit (pure functions), integration (I/O boundaries), e2e (happy paths).
--   No network calls in unit tests; mock at adapter boundary only.
--   Snapshot tests sparingly (stable, low-noise outputs).
+- 70%+ meaningful coverage; prefer behavior tests over implementation details.
+- Use: unit (pure functions), integration (I/O boundaries), e2e (happy paths).
+- No network calls in unit tests; mock at adapter boundary only.
+- Snapshot tests sparingly (stable, low-noise outputs).
 
 ## Development Workflow
 
--   **Before writing any code**:
+- **Before writing any code**:
     1. Ensure existing code passes `tsc --noEmit` and `eslint .`
-    2. Fix any existing errors before making changes
--   **While writing code**:
+    1. Fix any existing errors before making changes
+- **While writing code**:
     1. Run `tsc --noEmit` frequently (ideally on save)
-    2. Run `eslint .` frequently (ideally on save)
-    3. Fix errors immediately - never accumulate technical debt
--   **Before committing**:
+    1. Run `eslint .` frequently (ideally on save)
+    1. Fix errors immediately - never accumulate technical debt
+- **Before committing**:
     1. Run `tsc --noEmit` - must pass with zero errors
-    2. Run `eslint .` - must pass with zero errors
-    3. Run tests - must pass
-    4. Pre-commit hooks should block if any checks fail
+    1. Run `eslint .` - must pass with zero errors
+    1. Run tests - must pass
+    1. Pre-commit hooks should block if any checks fail
 
 ## Git / CI
 
--   Conventional Commits (feat, fix, chore, refactor, docs, test).
--   Enforce lint, type-check, test on pull requests.
--   **CI MUST fail on any TypeScript or ESLint errors**.
--   Auto-generate changelog via commit messages.
--   Use semantic versioning.
+- Conventional Commits (feat, fix, chore, refactor, docs, test).
+- Enforce lint, type-check, test on pull requests.
+- **CI MUST fail on any TypeScript or ESLint errors**.
+- Auto-generate changelog via commit messages.
+- Use semantic versioning.
 
 ## Linting / Formatting
 
--   **MANDATORY: Zero errors before commit or build**:
-    -   Run `tsc --noEmit` to check for TypeScript errors
-    -   Run `eslint .` to check for linting errors
-    -   Fix ALL errors before proceeding
-    -   No exceptions - every error must be resolved
--   ESLint with @typescript-eslint; no unused variables (`noUnusedLocals` true).
--   Prettier for formatting; run pre-commit (lint-staged + husky).
--   Disallow default exports except framework-required.
--   Configure pre-commit hooks to block commits with TypeScript or ESLint errors:
+- **MANDATORY: Zero errors before commit or build**:
+  - Run `tsc --noEmit` to check for TypeScript errors
+  - Run `eslint .` to check for linting errors
+  - Fix ALL errors before proceeding
+  - No exceptions - every error must be resolved
+- ESLint with @typescript-eslint; no unused variables (`noUnusedLocals` true).
+- Prettier for formatting; run pre-commit (lint-staged + husky).
+- Disallow default exports except framework-required.
+- Configure pre-commit hooks to block commits with TypeScript or ESLint errors:
+
     ```json
     // package.json
     {
@@ -265,38 +271,39 @@ export const env = envSchema.parse(process.env);
             ]
         }
     }
+
     ```
 
 ## Documentation
 
--   README: setup, run, test, build, deploy steps.
--   JSDoc only for non-obvious logic; prefer expressive naming.
--   Maintain ADRs (Architecture Decision Records) for significant choices.
+- README: setup, run, test, build, deploy steps.
+- JSDoc only for non-obvious logic; prefer expressive naming.
+- Maintain ADRs (Architecture Decision Records) for significant choices.
 
 ## Runtime Practices
 
--   Graceful shutdown: listen for SIGINT/SIGTERM, close servers, flush logs.
--   Use async local storage or request context for correlation IDs.
--   Propagate AbortSignal across async boundaries where cancellation matters.
+- Graceful shutdown: listen for SIGINT/SIGTERM, close servers, flush logs.
+- Use async local storage or request context for correlation IDs.
+- Propagate AbortSignal across async boundaries where cancellation matters.
 
 ## Dependencies
 
--   Prefer standard library before adding a dependency.
--   Lock file (package-lock.json) committed.
--   Periodically audit bundle / cold-start size for serverless contexts.
+- Prefer standard library before adding a dependency.
+- Lock file (package-lock.json) committed.
+- Periodically audit bundle / cold-start size for serverless contexts.
 
 ## Deployment
 
--   Build step outputs to dist/ (no ts-node in production).
--   Source maps generated; upload to error tracking if used.
--   **Runtime Selection**:
-    -   Use Bun for containerized production deployments (smaller images, faster startup, better performance).
-    -   Use Node.js LTS when Bun compatibility issues exist or when specific Node.js features are required.
--   **Docker Images**:
-    -   Immutable multi-stage builds with non-root user.
-    -   For Bun: use `oven/bun:1-alpine` or `oven/bun:1-distroless` as base.
-    -   For Node.js: use distroless/node or alpine with care.
-    -   Example multi-stage Dockerfile with Bun:
+- Build step outputs to dist/ (no ts-node in production).
+- Source maps generated; upload to error tracking if used.
+- **Runtime Selection**:
+  - Use Bun for containerized production deployments (smaller images, faster startup, better performance).
+  - Use Node.js LTS when Bun compatibility issues exist or when specific Node.js features are required.
+- **Docker Images**:
+  - Immutable multi-stage builds with non-root user.
+  - For Bun: use `oven/bun:1-alpine` or `oven/bun:1-distroless` as base.
+  - For Node.js: use distroless/node or alpine with care.
+  - Example multi-stage Dockerfile with Bun:
 
         ```dockerfile
         # Build stage
@@ -314,20 +321,21 @@ export const env = envSchema.parse(process.env);
         COPY --from=builder /app/node_modules ./node_modules
         USER nonroot
         CMD ["bun", "dist/index.js"]
+
         ```
 
 ## Code Review Checklist (abbreviated)
 
--   **CRITICAL: Zero TypeScript/ESLint errors**?
-    -   [ ] `tsc --noEmit` passes with zero errors
-    -   [ ] `eslint .` passes with zero errors
-    -   [ ] No TypeScript `any` types unless explicitly justified
-    -   [ ] No ESLint disable comments unless documented in PR
--   Clear responsibility? Test coverage adequate?
--   No TODO without linked issue.
--   No secret values / credentials in code.
--   Proper error handling and logging added?
--   Types strict, no any leaks?
+- **CRITICAL: Zero TypeScript/ESLint errors**?
+  - [ ] `tsc --noEmit` passes with zero errors
+  - [ ] `eslint .` passes with zero errors
+  - [ ] No TypeScript `any` types unless explicitly justified
+  - [ ] No ESLint disable comments unless documented in PR
+- Clear responsibility? Test coverage adequate?
+- No TODO without linked issue.
+- No secret values / credentials in code.
+- Proper error handling and logging added?
+- Types strict, no any leaks?
 
 ---
 
@@ -337,7 +345,7 @@ export const env = envSchema.parse(process.env);
 
 #### Project Structure
 
-```
+```text
 src/
 ├── app.ts              # Main Fastify app configuration
 ├── server.ts           # Local/container server entry point
@@ -350,13 +358,14 @@ src/
 ├── schemas/            # JSON schemas for validation
 ├── services/           # Business logic services
 └── types/              # TypeScript type definitions
-```
+
+```text
 
 #### Application Architecture
 
--   **app.ts**: Export configured Fastify instance
--   **server.ts**: Start server for local/container deployment
--   **handler.ts**: AWS Lambda handler using @fastify/aws-lambda
+- **app.ts**: Export configured Fastify instance
+- **server.ts**: Start server for local/container deployment
+- **handler.ts**: AWS Lambda handler using @fastify/aws-lambda
 
 #### Example Implementation
 
@@ -375,7 +384,8 @@ export function buildApp() {
     app.register(registerRoutes);
     return app;
 }
-```
+
+```text
 
 **server.ts**:
 
@@ -388,7 +398,8 @@ const start = async () => {
 };
 
 start();
-```
+
+```text
 
 **handler.ts**:
 
@@ -398,30 +409,31 @@ import { buildApp } from './app';
 
 const app = buildApp();
 export const handler = awsLambdaFastify(app);
-```
+
+```text
 
 #### Best Practices
 
--   Use Fastify plugins for modular architecture
--   Implement JSON schema validation for all routes
--   Use async/await for all async operations
--   Register routes using autoload or manual registration
--   Implement proper error handling with error schemas
+- Use Fastify plugins for modular architecture
+- Implement JSON schema validation for all routes
+- Use async/await for all async operations
+- Register routes using autoload or manual registration
+- Implement proper error handling with error schemas
 
 #### Naming Conventions
 
--   Use kebab-case for route paths (`/user-profile`)
--   Use camelCase for TypeScript variables and functions
--   Use PascalCase for types and interfaces
--   Prefix interfaces with 'I' (IUserRequest)
+- Use kebab-case for route paths (`/user-profile`)
+- Use camelCase for TypeScript variables and functions
+- Use PascalCase for types and interfaces
+- Prefix interfaces with 'I' (IUserRequest)
 
 #### Validation and Serialization
 
--   Use Zod for request/response validation
--   Convert Zod schemas to JSON schemas for Fastify
--   Use Fastify's built-in serialization
--   Implement custom error responses
--   Validate environment variables on startup
+- Use Zod for request/response validation
+- Convert Zod schemas to JSON schemas for Fastify
+- Use Fastify's built-in serialization
+- Implement custom error responses
+- Validate environment variables on startup
 
 **Zod Validation Example**:
 
@@ -457,14 +469,15 @@ app.post(
         // Handle validated request
     }
 );
-```
+
+```text
 
 #### Performance
 
--   Enable Fastify's built-in compression
--   Use connection pooling for databases
--   Implement proper caching strategies
--   Configure appropriate timeouts
+- Enable Fastify's built-in compression
+- Use connection pooling for databases
+- Implement proper caching strategies
+- Configure appropriate timeouts
 
 ---
 
@@ -472,17 +485,17 @@ app.post(
 
 #### Stack Requirements
 
--   Use Next.js 16+ with App Router (no legacy Pages Router)
--   Use React 18+ with Server Components by default
--   Use TypeScript in strict mode
--   Use TailwindCSS as primary styling utility with Shadcn/UI and Radix Themes
--   Target modern evergreen browsers
--   Use ESM everywhere (`"type": "module"`)
--   Use the context7 tool with id `/builderio/builder` for latest Builder.io documentation
+- Use Next.js 16+ with App Router (no legacy Pages Router)
+- Use React 18+ with Server Components by default
+- Use TypeScript in strict mode
+- Use TailwindCSS as primary styling utility with Shadcn/UI and Radix Themes
+- Target modern evergreen browsers
+- Use ESM everywhere (`"type": "module"`)
+- Use the context7 tool with id `/builderio/builder` for latest Builder.io documentation
 
 #### Project Structure
 
-```
+```text
 src/
 ├── app/                # App Router directory
 │   ├── layout.tsx      # Root layout
@@ -498,94 +511,95 @@ src/
 ├── styles/             # Global styles, design tokens
 ├── types/              # TypeScript definitions
 └── test/               # Test files (mirror structure)
-```
+
+```text
 
 Avoid deep nesting; prefer segment groups and parallel routes only when justified.
 
 #### React Server vs Client Components
 
--   Default to Server Components (no 'use client')
--   Use 'use client' only when needed for:
-    -   Stateful UI interactions
-    -   Event handlers
-    -   Browser-only APIs
--   Keep client component bundle size minimal
--   Pass only serializable props between server and client
--   Avoid marking entire layouts as client components
--   Promote data loading, heavy computation, and serialization to server component boundary
--   Client components must keep bundle size low; avoid re-exporting large server-only modules
+- Default to Server Components (no 'use client')
+- Use 'use client' only when needed for:
+  - Stateful UI interactions
+  - Event handlers
+  - Browser-only APIs
+- Keep client component bundle size minimal
+- Pass only serializable props between server and client
+- Avoid marking entire layouts as client components
+- Promote data loading, heavy computation, and serialization to server component boundary
+- Client components must keep bundle size low; avoid re-exporting large server-only modules
 
 #### Data Fetching & Caching
 
--   Use fetch() in Server Components with proper caching strategies
--   Use `cache: 'force-cache'` for static data
--   Use `cache: 'no-store'` for dynamic data
--   Implement ISR with revalidate tags/time
--   Use Route Handlers (app/api) instead of legacy pages/api
--   **When using Prisma**: Prefer Server Actions over API routes for database operations unless explicitly specified otherwise in prompt or instructions
-    -   Server Actions provide type-safe, co-located data mutations
-    -   Eliminate unnecessary API route boilerplate for database operations
-    -   Better integration with React Server Components and form handling
-    -   Use API routes only when needed for external API integrations, webhooks, or when explicitly requested
--   Co-locate server actions near form components
--   Use tag-based revalidation for selective cache busting
--   Use TanStack Query or SWR only for client-side real-time data
--   Prefer incremental static regeneration (ISR) via revalidate or tag invalidation; minimize fully dynamic routes unless required
--   Wrap external fetchers in lib/ with consistent error mapping; never leak raw HTTP layer details to components
--   Ensure server actions are idempotent where possible
--   Do not block rendering with artificial awaits; parallelize fetches
+- Use fetch() in Server Components with proper caching strategies
+- Use `cache: 'force-cache'` for static data
+- Use `cache: 'no-store'` for dynamic data
+- Implement ISR with revalidate tags/time
+- Use Route Handlers (app/api) instead of legacy pages/api
+- **When using Prisma**: Prefer Server Actions over API routes for database operations unless explicitly specified otherwise in prompt or instructions
+  - Server Actions provide type-safe, co-located data mutations
+  - Eliminate unnecessary API route boilerplate for database operations
+  - Better integration with React Server Components and form handling
+  - Use API routes only when needed for external API integrations, webhooks, or when explicitly requested
+- Co-locate server actions near form components
+- Use tag-based revalidation for selective cache busting
+- Use TanStack Query or SWR only for client-side real-time data
+- Prefer incremental static regeneration (ISR) via revalidate or tag invalidation; minimize fully dynamic routes unless required
+- Wrap external fetchers in lib/ with consistent error mapping; never leak raw HTTP layer details to components
+- Ensure server actions are idempotent where possible
+- Do not block rendering with artificial awaits; parallelize fetches
 
 #### Component Best Practices
 
--   Use TypeScript for all components with proper interfaces
--   Implement single responsibility principle
--   Use React hooks appropriately (useState, useEffect, useCallback)
--   Use React.memo only when profiling shows benefit
--   Follow proper prop typing patterns
--   Follow atomic design principles when appropriate
+- Use TypeScript for all components with proper interfaces
+- Implement single responsibility principle
+- Use React hooks appropriately (useState, useEffect, useCallback)
+- Use React.memo only when profiling shows benefit
+- Follow proper prop typing patterns
+- Follow atomic design principles when appropriate
 
 #### Component Organization
 
--   Place page components in `src/app/(routes)`
--   Place reusable UI components in `src/components/`
--   Keep client components small and focused
--   Implement proper error boundaries
+- Place page components in `src/app/(routes)`
+- Place reusable UI components in `src/components/`
+- Keep client components small and focused
+- Implement proper error boundaries
 
 #### Performance Optimization
 
--   Analyze bundle size with `next build` output
--   Use dynamic imports for heavy components
--   Implement proper image optimization with next/image
--   Use next/font for typography without layout shift
--   Tree-shake icon libraries (prefer lucide-react)
--   Use Streaming and Suspense for progressive rendering
--   Parallelize data fetches, avoid artificial awaits
--   Memoization: only where profiling shows benefit (React.memo, useMemo, useCallback)
--   Dynamic import for rarely used interactive parts (e.g. charts, editors) with SSR disabled only if necessary
--   Prefer server-side image transformations (next/image) over shipping large raw images
+- Analyze bundle size with `next build` output
+- Use dynamic imports for heavy components
+- Implement proper image optimization with next/image
+- Use next/font for typography without layout shift
+- Tree-shake icon libraries (prefer lucide-react)
+- Use Streaming and Suspense for progressive rendering
+- Parallelize data fetches, avoid artificial awaits
+- Memoization: only where profiling shows benefit (React.memo, useMemo, useCallback)
+- Dynamic import for rarely used interactive parts (e.g. charts, editors) with SSR disabled only if necessary
+- Prefer server-side image transformations (next/image) over shipping large raw images
 
 #### Styling with TailwindCSS
 
--   Use design tokens via @layer base and theme config
--   Create semantic wrapper components instead of repeating classes
--   Use clsx for conditional classes
--   Keep globals.css minimal (resets, variables only)
--   Configure consistent dark mode strategy
--   Ensure proper purge configuration
+- Use design tokens via @layer base and theme config
+- Create semantic wrapper components instead of repeating classes
+- Use clsx for conditional classes
+- Keep globals.css minimal (resets, variables only)
+- Configure consistent dark mode strategy
+- Ensure proper purge configuration
 
 #### State Management
 
--   Use useState/useReducer for local state
--   Use Zustand or Jotai for lightweight cross-component state
--   Prefer server state hydration over heavy client state libraries
--   Avoid Redux unless complex cross-cutting concerns justify it
+- Use useState/useReducer for local state
+- Use Zustand or Jotai for lightweight cross-component state
+- Prefer server state hydration over heavy client state libraries
+- Avoid Redux unless complex cross-cutting concerns justify it
 
 #### Forms & Validation
 
--   Use react-hook-form for complex forms
--   Use Zod for schema validation with TypeScript inference
--   Validate on both client and server (never trust client only)
--   Implement accessible error messages with aria-live
+- Use react-hook-form for complex forms
+- Use Zod for schema validation with TypeScript inference
+- Validate on both client and server (never trust client only)
+- Implement accessible error messages with aria-live
 
 **Server Actions with TypeScript 6.0 + Zod**:
 
@@ -610,62 +624,63 @@ export async function createUser(formData: FormData) {
     // result.data is now typed AND validated with TypeScript 6.0
     await db.users.create(result.data);
 }
-```
+
+```text
 
 #### Accessibility Requirements
 
--   Use semantic HTML elements first (button, nav, header, main)
--   Use Radix UI primitives for complex widgets
--   Ensure keyboard accessibility for all interactive elements
--   Provide proper alt text, aria-labels, and heading hierarchy
--   Meet WCAG AA color contrast requirements
--   Validate with automated tooling
+- Use semantic HTML elements first (button, nav, header, main)
+- Use Radix UI primitives for complex widgets
+- Ensure keyboard accessibility for all interactive elements
+- Provide proper alt text, aria-labels, and heading hierarchy
+- Meet WCAG AA color contrast requirements
+- Validate with automated tooling
 
 #### Error & Loading States
 
--   Use loading.tsx and error.tsx for route segments
--   Implement proper Error Boundaries
--   Create fast skeleton UIs, avoid spinner-only states
--   Use not-found.tsx for 404 handling
--   Surface user-friendly error messages
--   Log detailed errors server-side only
+- Use loading.tsx and error.tsx for route segments
+- Implement proper Error Boundaries
+- Create fast skeleton UIs, avoid spinner-only states
+- Use not-found.tsx for 404 handling
+- Surface user-friendly error messages
+- Log detailed errors server-side only
 
 #### Security Best Practices
 
--   Validate all inputs with Zod in route handlers and server actions
--   Sanitize HTML content, avoid dangerouslySetInnerHTML
--   Set proper security headers via middleware
--   Only expose NEXT*PUBLIC* prefixed environment variables
--   Never leak sensitive data to client logs
+- Validate all inputs with Zod in route handlers and server actions
+- Sanitize HTML content, avoid dangerouslySetInnerHTML
+- Set proper security headers via middleware
+- Only expose NEXT*PUBLIC* prefixed environment variables
+- Never leak sensitive data to client logs
 
 #### Testing Strategy
 
--   Use Jest/Vitest and React Testing Library for unit tests
--   Use Playwright for integration and accessibility tests
--   Mock network requests with MSW
--   Focus on behavior testing, not implementation details
--   Enforce coverage thresholds
--   Test custom hooks separately
+- Use Jest/Vitest and React Testing Library for unit tests
+- Use Playwright for integration and accessibility tests
+- Mock network requests with MSW
+- Focus on behavior testing, not implementation details
+- Enforce coverage thresholds
+- Test custom hooks separately
 
 #### Approved Libraries
 
--   Core: next, react, react-dom
--   Styling: tailwindcss, postcss, autoprefixer, clsx
--   UI: @radix-ui/react-\*, lucide-react
--   State: zustand or jotai (if needed)
--   Forms: react-hook-form, zod
--   Data: @tanstack/react-query or swr
--   Testing: @testing-library/react, playwright, msw
--   Animation: framer-motion (use sparingly)
+- Core: next, react, react-dom
+- Styling: tailwindcss, postcss, autoprefixer, clsx
+- UI: @radix-ui/react-\*, lucide-react
+- State: zustand or jotai (if needed)
+- Forms: react-hook-form, zod
+- Data: @tanstack/react-query or swr
+- Testing: @testing-library/react, playwright, msw
+- Animation: framer-motion (use sparingly)
 
 #### Deployment (AWS Amplify)
 
--   Target AWS Amplify Hosting with Next.js support
--   Use immutable build artifacts
--   Configure environment variables in Amplify console
--   Enable dependency caching in amplify.yml
--   Set proper security headers
--   Monitor bundle size budgets in CI
+- Target AWS Amplify Hosting with Next.js support
+- Use immutable build artifacts
+- Configure environment variables in Amplify console
+- Enable dependency caching in amplify.yml
+- Set proper security headers
+- Monitor bundle size budgets in CI
 
 **Example amplify.yml**:
 
@@ -705,46 +720,47 @@ frontend:
                 value: 'geolocation=(self), microphone=()'
               - key: 'Content-Security-Policy'
                 value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
-```
+
+```text
 
 #### Internationalization (if used)
 
--   Use Next.js built-in i18n routing or lightweight library; avoid runtime-only heavy libs.
--   Load translation dictionaries server-side, pass minimal subset to client.
+- Use Next.js built-in i18n routing or lightweight library; avoid runtime-only heavy libs.
+- Load translation dictionaries server-side, pass minimal subset to client.
 
 #### Images / Media
 
--   Always use next/image for dynamic optimization unless exact 1:1 needed from public/.
--   Provide width/height to prevent layout shift.
--   Use modern formats (AVIF/WebP) via automatic conversion.
+- Always use next/image for dynamic optimization unless exact 1:1 needed from public/.
+- Provide width/height to prevent layout shift.
+- Use modern formats (AVIF/WebP) via automatic conversion.
 
 #### Logging & Observability
 
--   Client: minimal logging (development only); sensitive data never logged.
--   Use web-vitals (reportWebVitals) to send metrics (e.g., to an analytics endpoint).
--   Server errors mapped; no stack traces surfaced to user.
+- Client: minimal logging (development only); sensitive data never logged.
+- Use web-vitals (reportWebVitals) to send metrics (e.g., to an analytics endpoint).
+- Server errors mapped; no stack traces surfaced to user.
 
 #### Styling Alternatives
 
--   Prefer Tailwind; CSS Modules only for rare complex cascade or third-party overrides.
--   No SCSS unless legacy; avoid CSS-in-JS runtime solutions (styled-components) unless critical (adds bundle/runtime cost).
+- Prefer Tailwind; CSS Modules only for rare complex cascade or third-party overrides.
+- No SCSS unless legacy; avoid CSS-in-JS runtime solutions (styled-components) unless critical (adds bundle/runtime cost).
 
 #### Naming & Components
 
--   File names: kebab-case or PascalCase for components; consistent choice documented (prefer PascalCase for component files).
--   Named exports for components; index.ts barrels sparingly to avoid tree-shaking impediments.
--   Avoid default exports except Next.js route segment (layout.tsx, page.tsx) and configuration files.
+- File names: kebab-case or PascalCase for components; consistent choice documented (prefer PascalCase for component files).
+- Named exports for components; index.ts barrels sparingly to avoid tree-shaking impediments.
+- Avoid default exports except Next.js route segment (layout.tsx, page.tsx) and configuration files.
 
 #### Environment & Config
 
--   next.config.mjs: keep minimal; document experimental flags.
--   Distinguish runtime vs build-time configuration; avoid dynamic require.
--   Feature flags: simple module returning typed config; optionally integrate with remote flags (lazy loaded).
+- next.config.mjs: keep minimal; document experimental flags.
+- Distinguish runtime vs build-time configuration; avoid dynamic require.
+- Feature flags: simple module returning typed config; optionally integrate with remote flags (lazy loaded).
 
 #### Migration / Deprecation
 
--   Mark deprecated components with clear JSDoc @deprecated and link to replacement.
--   Remove unused feature flags / dead routes promptly.
+- Mark deprecated components with clear JSDoc @deprecated and link to replacement.
+- Remove unused feature flags / dead routes promptly.
 
 #### Example Component Pattern
 
@@ -790,7 +806,8 @@ export function UserCard({ user, onEdit }: UserCardProps) {
         </Card>
     );
 }
-```
+
+```text
 
 #### Example Button Component with Variants (Shadcn/UI Pattern)
 
@@ -852,7 +869,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 export { Button, buttonVariants };
-```
+
+```text
 
 #### Example Dialog Component (Radix UI + Shadcn Pattern)
 
@@ -940,16 +958,17 @@ export function UserEditDialog({ user, onSave }: UserEditDialogProps) {
         </Dialog>
     );
 }
-```
+
+```text
 
 #### Prohibited Patterns
 
--   Large date/time libraries (use native Date or date-fns)
--   Client-side rendering entire pages when SSR/SSG suffices
--   Global mutable singletons without justification
--   Unbounded polling (prefer server-sent events)
--   Heavy UI component libraries without ADR justification
--   CSS-in-JS runtime solutions (adds bundle cost)
+- Large date/time libraries (use native Date or date-fns)
+- Client-side rendering entire pages when SSR/SSG suffices
+- Global mutable singletons without justification
+- Unbounded polling (prefer server-sent events)
+- Heavy UI component libraries without ADR justification
+- CSS-in-JS runtime solutions (adds bundle cost)
 
 ---
 
@@ -957,59 +976,59 @@ export function UserEditDialog({ user, onSave }: UserEditDialogProps) {
 
 #### Angular Version Requirements
 
--   Use recent versions of Angular (16+)
--   Do not use AngularJS (1.x) for new projects
--   Keep Angular CLI updated to latest stable version
--   Use Angular LTS versions for production applications
+- Use recent versions of Angular (16+)
+- Do not use AngularJS (1.x) for new projects
+- Keep Angular CLI updated to latest stable version
+- Use Angular LTS versions for production applications
 
 #### Project Structure
 
--   Follow Angular style guide conventions
--   Use feature modules for organization
--   Implement lazy loading for route modules
--   Separate shared components into modules
+- Follow Angular style guide conventions
+- Use feature modules for organization
+- Implement lazy loading for route modules
+- Separate shared components into modules
 
 #### TypeScript Configuration
 
--   Use strict mode in Angular projects
--   Enable Angular strict template checks
--   Use Angular ESLint rules
--   Configure path mapping for clean imports
+- Use strict mode in Angular projects
+- Enable Angular strict template checks
+- Use Angular ESLint rules
+- Configure path mapping for clean imports
 
 #### Component Best Practices
 
--   Use OnPush change detection strategy
--   Implement OnDestroy for cleanup
--   Use reactive forms over template-driven forms
--   Follow single responsibility principle
+- Use OnPush change detection strategy
+- Implement OnDestroy for cleanup
+- Use reactive forms over template-driven forms
+- Follow single responsibility principle
 
 #### State Management
 
--   Use Angular services for simple state
--   Implement NgRx for complex state management
--   Use RxJS operators effectively
--   Avoid memory leaks with proper subscriptions
+- Use Angular services for simple state
+- Implement NgRx for complex state management
+- Use RxJS operators effectively
+- Avoid memory leaks with proper subscriptions
 
 #### Testing
 
--   Use Jasmine and Karma for unit tests
--   Write component tests with TestBed
--   Use Angular Testing Library for better tests
--   Mock HTTP calls with HttpClientTestingModule
+- Use Jasmine and Karma for unit tests
+- Write component tests with TestBed
+- Use Angular Testing Library for better tests
+- Mock HTTP calls with HttpClientTestingModule
 
 #### Build and Deployment
 
--   Use Angular CLI for builds
--   Configure environment-specific builds
--   Implement proper bundling and tree-shaking
--   Use Angular Universal for SSR when needed
+- Use Angular CLI for builds
+- Configure environment-specific builds
+- Implement proper bundling and tree-shaking
+- Use Angular Universal for SSR when needed
 
 #### Performance
 
--   Implement lazy loading
--   Use OnPush change detection
--   Optimize bundle sizes
--   Use trackBy functions in \*ngFor
+- Implement lazy loading
+- Use OnPush change detection
+- Optimize bundle sizes
+- Use trackBy functions in \*ngFor
 
 ---
 
@@ -1019,23 +1038,23 @@ export function UserEditDialog({ user, onSave }: UserEditDialogProps) {
 
 #### Core Principle
 
--   **All SQL operations MUST be performed through the Prisma schema and Prisma Client**
--   Never write raw SQL queries directly - use Prisma's type-safe query API
--   Database schema changes MUST be made through Prisma migrations
+- **All SQL operations MUST be performed through the Prisma schema and Prisma Client**
+- Never write raw SQL queries directly - use Prisma's type-safe query API
+- Database schema changes MUST be made through Prisma migrations
 
 #### Schema Management
 
--   Define all models in `prisma/schema.prisma`
--   Use `npx prisma migrate dev` for development migrations
--   Use `npx prisma migrate deploy` for production deployments
--   Run `npx prisma generate` after schema changes to update Prisma Client
+- Define all models in `prisma/schema.prisma`
+- Use `npx prisma migrate dev` for development migrations
+- Use `npx prisma migrate deploy` for production deployments
+- Run `npx prisma generate` after schema changes to update Prisma Client
 
 #### Naming Conventions (PostgreSQL)
 
--   **CRITICAL**: Use camelCase for Prisma model properties
--   **CRITICAL**: Map to snake_case database columns using `@map("column_name")`
--   This maintains TypeScript/JavaScript conventions while following PostgreSQL best practices
--   Example:
+- **CRITICAL**: Use camelCase for Prisma model properties
+- **CRITICAL**: Map to snake_case database columns using `@map("column_name")`
+- This maintains TypeScript/JavaScript conventions while following PostgreSQL best practices
+- Example:
 
     ```prisma
     model User {
@@ -1047,20 +1066,21 @@ export function UserEditDialog({ user, onSave }: UserEditDialogProps) {
 
       @@map("users")
     }
+
     ```
 
 #### Query Patterns
 
--   Use Prisma Client methods: `findMany`, `findUnique`, `create`, `update`, `delete`, `upsert`
--   Leverage Prisma's relation queries instead of manual joins
--   Use transactions with `prisma.$transaction()` for atomic operations
+- Use Prisma Client methods: `findMany`, `findUnique`, `create`, `update`, `delete`, `upsert`
+- Leverage Prisma's relation queries instead of manual joins
+- Use transactions with `prisma.$transaction()` for atomic operations
 
 #### Best Practices
 
--   Always regenerate Prisma Client after schema modifications
--   Use Prisma Studio (`npx prisma studio`) for database inspection
--   Validate schema with `npx prisma validate`
--   Format schema with `npx prisma format`
+- Always regenerate Prisma Client after schema modifications
+- Use Prisma Studio (`npx prisma studio`) for database inspection
+- Validate schema with `npx prisma validate`
+- Format schema with `npx prisma format`
 
 ---
 
@@ -1073,10 +1093,10 @@ This section provides comprehensive best practices for implementing Supabase Aut
 ### Core Principles
 
 1. **Let Supabase Handle Session Management**: Don't implement custom session refresh logic
-2. **Proper Cookie Handling**: Follow Supabase's exact cookie patterns to prevent race conditions
-3. **PKCE Flow**: Always use PKCE (Proof Key for Code Exchange) for secure authentication
-4. **Auth Callbacks**: Implement proper callback routes for email verification and OAuth
-5. **Minimal Middleware**: Keep authentication middleware simple and focused
+1. **Proper Cookie Handling**: Follow Supabase's exact cookie patterns to prevent race conditions
+1. **PKCE Flow**: Always use PKCE (Proof Key for Code Exchange) for secure authentication
+1. **Auth Callbacks**: Implement proper callback routes for email verification and OAuth
+1. **Minimal Middleware**: Keep authentication middleware simple and focused
 
 ### Required Packages
 
@@ -1087,7 +1107,8 @@ This section provides comprehensive best practices for implementing Supabase Aut
         "@supabase/supabase-js": "latest"
     }
 }
-```
+
+```text
 
 ### Environment Configuration
 
@@ -1100,7 +1121,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 # Optional: For custom redirects
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
-```
+
+```text
 
 **Validation with Zod**:
 
@@ -1115,7 +1137,8 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
-```
+
+```text
 
 ### Supabase Client Configuration
 
@@ -1123,10 +1146,10 @@ export const env = envSchema.parse(process.env);
 
 **CRITICAL Configuration Points**:
 
--   `detectSessionInUrl: true` - Required for auth callbacks
--   `autoRefreshToken: true` - Explicit auto-refresh
--   `persistSession: true` - Ensure sessions persist across requests
--   `flowType: 'pkce'` - Use secure PKCE flow
+- `detectSessionInUrl: true` - Required for auth callbacks
+- `autoRefreshToken: true` - Explicit auto-refresh
+- `persistSession: true` - Ensure sessions persist across requests
+- `flowType: 'pkce'` - Use secure PKCE flow
 
 ```typescript
 // lib/supabase/server.ts
@@ -1163,7 +1186,8 @@ export async function createClient() {
         }
     );
 }
-```
+
+```text
 
 #### Client Component Client
 
@@ -1177,16 +1201,17 @@ export function createClient() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 }
-```
+
+```text
 
 ### Middleware Pattern
 
-**CRITICAL: Simplified Middleware**
+#### CRITICAL: Simplified Middleware
 
--   No custom session refresh logic
--   No manual expiry checking
--   Let Supabase SDK handle everything
--   No code between `createServerClient` and `getUser()`
+- No custom session refresh logic
+- No manual expiry checking
+- Let Supabase SDK handle everything
+- No code between `createServerClient` and `getUser()`
 
 ```typescript
 // middleware.ts
@@ -1247,11 +1272,12 @@ export const config = {
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };
-```
+
+```text
 
 ### Auth Callback Route
 
-**CRITICAL: Required for email verification, magic links, and password resets**
+#### CRITICAL: Required for email verification, magic links, and password resets
 
 ```typescript
 // app/auth/confirm/route.ts
@@ -1288,7 +1314,8 @@ export async function GET(request: NextRequest) {
     errorUrl.searchParams.set('error', 'verification_failed');
     return NextResponse.redirect(errorUrl);
 }
-```
+
+```text
 
 ### Auth Error Page
 
@@ -1319,11 +1346,12 @@ export default function AuthErrorPage() {
         </Suspense>
     );
 }
-```
+
+```text
 
 ### Supabase Dashboard Configuration
 
-**CRITICAL: Configure these settings in your Supabase Dashboard**
+#### CRITICAL: Configure these settings in your Supabase Dashboard
 
 1. **Authentication → URL Configuration**:
 
@@ -1332,13 +1360,13 @@ export default function AuthErrorPage() {
         - Production: `https://yourdomain.com/auth/confirm`
     - Add site URL: Your production domain
 
-2. **Authentication → Settings**:
+1. **Authentication → Settings**:
 
     - JWT expiry: 86400 seconds (24 hours) recommended
     - Enable auto-refresh token: ✅ Checked
     - Refresh token rotation: ✅ Checked (recommended)
 
-3. **Authentication → Email Templates**:
+1. **Authentication → Email Templates**:
     - Ensure confirmation URL uses: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
     - Ensure magic link uses: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink`
 
@@ -1361,7 +1389,8 @@ async function customRefresh(supabase: SupabaseClient) {
         await supabase.auth.refreshSession();
     }
 }
-```
+
+```text
 
 ❌ **DON'T: Disable Session Detection**
 
@@ -1370,7 +1399,8 @@ async function customRefresh(supabase: SupabaseClient) {
 auth: {
   detectSessionInUrl: false, // Don't do this
 }
-```
+
+```text
 
 ❌ **DON'T: Add Code Between Client Creation and getUser()**
 
@@ -1379,7 +1409,8 @@ auth: {
 const supabase = createServerClient(...);
 await someOtherFunction(); // Don't do this
 const { data: { user } } = await supabase.auth.getUser();
-```
+
+```text
 
 ❌ **DON'T: Manually Check Session Expiry**
 
@@ -1388,15 +1419,16 @@ const { data: { user } } = await supabase.auth.getUser();
 if (session.expires_at < Date.now() / 1000) {
     await supabase.auth.refreshSession();
 }
-```
+
+```text
 
 ### Best Practices Checklist
 
 ✅ **DO: Let Supabase Handle Everything**
 
--   Automatic session refresh
--   Token rotation
--   Cookie management
+- Automatic session refresh
+- Token rotation
+- Cookie management
 
 ✅ **DO: Follow Exact Cookie Patterns**
 
@@ -1411,19 +1443,20 @@ cookies: {
     );
   },
 }
-```
+
+```text
 
 ✅ **DO: Implement Auth Callback Route**
 
--   Required for email verification
--   Required for magic links
--   Required for password resets
+- Required for email verification
+- Required for magic links
+- Required for password resets
 
 ✅ **DO: Configure Supabase Dashboard Properly**
 
--   Add redirect URLs
--   Set appropriate JWT expiry (24 hours recommended)
--   Enable auto-refresh token
+- Add redirect URLs
+- Set appropriate JWT expiry (24 hours recommended)
+- Enable auto-refresh token
 
 ✅ **DO: Use Proper Error Handling**
 
@@ -1440,15 +1473,16 @@ if (error) {
     }
     return { error: error.message };
 }
-```
+
+```text
 
 ### Session Monitoring and Debugging
 
 **Browser DevTools Inspection**:
 
 1. Open DevTools → Application → Cookies
-2. Look for cookies: `sb-<project>-auth-token`
-3. Verify attributes:
+1. Look for cookies: `sb-<project>-auth-token`
+1. Verify attributes:
     - HttpOnly: Yes
     - Secure: Yes (production)
     - SameSite: Lax
@@ -1464,84 +1498,85 @@ console.log(
     'Cookies:',
     req.cookies.getAll().map((c) => c.name)
 );
-```
+
+```text
 
 ### Testing Checklist
 
 After implementing authentication, verify:
 
--   [ ] Users can sign up with email
--   [ ] Email verification links work
--   [ ] Users can log in
--   [ ] Sessions persist across page refreshes
--   [ ] Sessions persist for configured duration (24 hours)
--   [ ] Automatic refresh happens invisibly
--   [ ] Protected routes redirect properly
--   [ ] Users can log out successfully
--   [ ] Password reset flow works
--   [ ] Magic link login works (if enabled)
+- [ ] Users can sign up with email
+- [ ] Email verification links work
+- [ ] Users can log in
+- [ ] Sessions persist across page refreshes
+- [ ] Sessions persist for configured duration (24 hours)
+- [ ] Automatic refresh happens invisibly
+- [ ] Protected routes redirect properly
+- [ ] Users can log out successfully
+- [ ] Password reset flow works
+- [ ] Magic link login works (if enabled)
 
 ### Performance Considerations
 
 1. **Cookie Size**: Supabase auth tokens are ~500-1000 bytes - acceptable
-2. **Middleware Performance**: Simplified middleware adds <10ms overhead
-3. **Session Refresh**: Happens automatically before token expires (no user impact)
-4. **Client-Side**: Use React Context for user state, not prop drilling
+1. **Middleware Performance**: Simplified middleware adds <10ms overhead
+1. **Session Refresh**: Happens automatically before token expires (no user impact)
+1. **Client-Side**: Use React Context for user state, not prop drilling
 
 ### Security Considerations
 
 1. **Never expose service_role key** to client-side code
-2. **Use Row Level Security (RLS)** for all database tables
-3. **Validate auth state** server-side for sensitive operations
-4. **Implement rate limiting** on auth endpoints
-5. **Use HTTPS** in production (always)
-6. **Set secure cookie attributes** (handled by Supabase)
+1. **Use Row Level Security (RLS)** for all database tables
+1. **Validate auth state** server-side for sensitive operations
+1. **Implement rate limiting** on auth endpoints
+1. **Use HTTPS** in production (always)
+1. **Set secure cookie attributes** (handled by Supabase)
 
 ### Troubleshooting Common Issues
 
-**Issue: Users logged out every minute**
+#### Issue: Users logged out every minute
 
--   ✅ Solution: Follow patterns above (no custom refresh logic)
--   ✅ Verify: `detectSessionInUrl: true` in server client
--   ✅ Check: Auth callback route exists at `/auth/confirm`
+- ✅ Solution: Follow patterns above (no custom refresh logic)
+- ✅ Verify: `detectSessionInUrl: true` in server client
+- ✅ Check: Auth callback route exists at `/auth/confirm`
 
-**Issue: Email verification links don't work**
+#### Issue: Email verification links don't work
 
--   ✅ Check: Redirect URL configured in Supabase Dashboard
--   ✅ Verify: Auth callback route implemented correctly
--   ✅ Verify: Email template uses correct URL format
+- ✅ Check: Redirect URL configured in Supabase Dashboard
+- ✅ Verify: Auth callback route implemented correctly
+- ✅ Verify: Email template uses correct URL format
 
-**Issue: Sessions don't persist**
+#### Issue: Sessions don't persist
 
--   ✅ Check: Cookie `setAll()` implementation matches pattern
--   ✅ Verify: `persistSession: true` in client config
--   ✅ Check: Middleware matcher not excluding routes
+- ✅ Check: Cookie `setAll()` implementation matches pattern
+- ✅ Verify: `persistSession: true` in client config
+- ✅ Check: Middleware matcher not excluding routes
 
-**Issue: Race conditions during refresh**
+#### Issue: Race conditions during refresh
 
--   ✅ Solution: Remove all custom refresh logic
--   ✅ Verify: No code between `createServerClient` and `getUser()`
--   ✅ Check: Using Supabase SSR package (not deprecated auth-helpers)
+- ✅ Solution: Remove all custom refresh logic
+- ✅ Verify: No code between `createServerClient` and `getUser()`
+- ✅ Check: Using Supabase SSR package (not deprecated auth-helpers)
 
 ### Migration from Deprecated Packages
 
 If migrating from `@supabase/auth-helpers-nextjs`:
 
 1. Uninstall old package: `npm uninstall @supabase/auth-helpers-nextjs`
-2. Install new package: `npm install @supabase/ssr`
-3. Update imports: `@supabase/auth-helpers-nextjs` → `@supabase/ssr`
-4. Update client creation: Use `createServerClient` / `createBrowserClient`
-5. Update middleware: Follow patterns above
-6. Add auth callback route: Required for SSR package
-7. Test thoroughly: All auth flows should work
+1. Install new package: `npm install @supabase/ssr`
+1. Update imports: `@supabase/auth-helpers-nextjs` → `@supabase/ssr`
+1. Update client creation: Use `createServerClient` / `createBrowserClient`
+1. Update middleware: Follow patterns above
+1. Add auth callback route: Required for SSR package
+1. Test thoroughly: All auth flows should work
 
 ### Resources
 
--   [Supabase Auth Documentation](https://supabase.com/docs/guides/auth)
--   [Supabase SSR Package](https://supabase.com/docs/guides/auth/server-side/nextjs)
--   [Supabase Server-Side Auth with Next.js App Router](https://supabase.com/docs/guides/auth/server-side/nextjs?router=app&queryGroups=router)
--   [Next.js Middleware Documentation](https://nextjs.org/docs/app/building-your-application/routing/middleware)
--   [PKCE Flow Specification](https://oauth.net/2/pkce/)
+- [Supabase Auth Documentation](https://supabase.com/docs/guides/auth)
+- [Supabase SSR Package](https://supabase.com/docs/guides/auth/server-side/nextjs)
+- [Supabase Server-Side Auth with Next.js App Router](https://supabase.com/docs/guides/auth/server-side/nextjs?router=app&queryGroups=router)
+- [Next.js Middleware Documentation](https://nextjs.org/docs/app/building-your-application/routing/middleware)
+- [PKCE Flow Specification](https://oauth.net/2/pkce/)
 
 ---
 
@@ -1551,15 +1586,15 @@ If migrating from `@supabase/auth-helpers-nextjs`:
 
 **Next.js 16 deprecates middleware.ts in favor of proxy.ts** for routing and request handling.
 
-**Migration Required:**
+#### Migration Required
 
--   `middleware.ts` → `proxy.ts`
--   Updated API and configuration
--   See: https://nextjs.org/docs/messages/middleware-to-proxy
+- `middleware.ts` → `proxy.ts`
+- Updated API and configuration
+- See: <https://nextjs.org/docs/messages/middleware-to-proxy>
 
 ### Proxy Configuration
 
-**Create `proxy.ts` in project root:**
+#### Create `proxy.ts` in project root
 
 ```typescript
 // proxy.ts
@@ -1575,22 +1610,23 @@ export const config = {
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };
-```
 
-**Key Differences from Middleware:**
+```text
 
--   File name: `proxy.ts` instead of `middleware.ts`
--   Export function: `proxy()` instead of `middleware()`
--   Same Edge Runtime constraints apply
--   Same matcher configuration
+#### Key Differences from Middleware
+
+- File name: `proxy.ts` instead of `middleware.ts`
+- Export function: `proxy()` instead of `middleware()`
+- Same Edge Runtime constraints apply
+- Same matcher configuration
 
 ### Migration Checklist
 
--   [ ] Rename `middleware.ts` to `proxy.ts`
--   [ ] Rename exported function from `middleware` to `proxy`
--   [ ] Update imports if referencing middleware elsewhere
--   [ ] Test all routing and authentication flows
--   [ ] Update documentation and comments
+- [ ] Rename `middleware.ts` to `proxy.ts`
+- [ ] Rename exported function from `middleware` to `proxy`
+- [ ] Update imports if referencing middleware elsewhere
+- [ ] Test all routing and authentication flows
+- [ ] Update documentation and comments
 
 ---
 
@@ -1600,20 +1636,20 @@ export const config = {
 
 **Next.js proxy/middleware runs in Edge Runtime**, which has significant limitations compared to Node.js runtime:
 
--   **Edge Runtime**: Limited Node.js APIs, optimized for low latency
--   **Node.js Runtime**: Full Node.js APIs (Server Components, Server Actions, API Routes)
+- **Edge Runtime**: Limited Node.js APIs, optimized for low latency
+- **Node.js Runtime**: Full Node.js APIs (Server Components, Server Actions, API Routes)
 
 ### Database Access Strategy
 
 **Prefer Prisma ORM for PostgreSQL projects**, but respect existing project choices:
 
--   If project uses Prisma: Continue with Prisma patterns
--   If project uses pure supabase.js: Continue with Supabase client patterns
--   For new projects: Default to Prisma ORM unless specified otherwise
+- If project uses Prisma: Continue with Prisma patterns
+- If project uses pure supabase.js: Continue with Supabase client patterns
+- For new projects: Default to Prisma ORM unless specified otherwise
 
 ### Prisma ORM Cannot Run in Proxy/Middleware
 
-**❌ NEVER use Prisma in Next.js proxy/middleware**
+#### ❌ NEVER use Prisma in Next.js proxy/middleware
 
 ```typescript
 // ❌ BAD - This will cause runtime errors
@@ -1625,18 +1661,19 @@ export async function proxy(req: NextRequest) {
         where: { id: userId },
     });
 }
-```
 
-**Why Prisma doesn't work in proxy/middleware:**
+```text
 
--   Prisma requires full Node.js APIs (fs, crypto, etc.)
--   Edge runtime only provides a subset of Node.js APIs
--   Prisma generates Node.js-specific code that cannot execute in Edge
--   Will cause "Module not found" or "Cannot find module" errors
+#### Why Prisma doesn't work in proxy/middleware
+
+- Prisma requires full Node.js APIs (fs, crypto, etc.)
+- Edge runtime only provides a subset of Node.js APIs
+- Prisma generates Node.js-specific code that cannot execute in Edge
+- Will cause "Module not found" or "Cannot find module" errors
 
 ### Use Supabase Direct Database Queries Instead
 
-**✅ DO: Use Supabase's direct table API in proxy/middleware**
+#### ✅ DO: Use Supabase's direct table API in proxy/middleware
 
 ```typescript
 // ✅ GOOD - Works in Edge runtime
@@ -1651,26 +1688,27 @@ export async function proxy(req: NextRequest) {
     .select('role')
     .eq('user_id', userId);
 }
-```
+
+```text
 
 ### Where to Use Each Approach
 
-**Use Prisma (Node.js Runtime):**
+#### Use Prisma (Node.js Runtime)
 
--   ✅ Server Components (`app/**/page.tsx`)
--   ✅ Server Actions (`'use server'` functions)
--   ✅ API Routes (`app/api/**/route.ts`)
--   ✅ Server-side utilities called from above contexts
+- ✅ Server Components (`app/**/page.tsx`)
+- ✅ Server Actions (`'use server'` functions)
+- ✅ API Routes (`app/api/**/route.ts`)
+- ✅ Server-side utilities called from above contexts
 
-**Use Supabase Direct Queries (Edge Runtime):**
+#### Use Supabase Direct Queries (Edge Runtime)
 
--   ✅ Proxy/Middleware (`proxy.ts` in Next.js 16+, `middleware.ts` in older versions)
--   ✅ Edge API Routes (with `export const runtime = 'edge'`)
--   ✅ Any code that needs to run in Edge runtime
+- ✅ Proxy/Middleware (`proxy.ts` in Next.js 16+, `middleware.ts` in older versions)
+- ✅ Edge API Routes (with `export const runtime = 'edge'`)
+- ✅ Any code that needs to run in Edge runtime
 
 ### Database Column Naming
 
-**CRITICAL: Mind the naming convention differences:**
+#### CRITICAL: Mind the naming convention differences
 
 ```typescript
 // Prisma uses camelCase (from schema.prisma @map())
@@ -1682,11 +1720,12 @@ const roles = await prisma.userRole.findMany({
 const { data: roles } = await supabase
     .from('user_roles')
     .eq('user_id', user.id); // snake_case - matches database
-```
+
+```text
 
 ### Migration Example: Prisma to Supabase in Proxy/Middleware
 
-**Before (Broken):**
+#### Before (Broken)
 
 ```typescript
 import prisma from '@/lib/prisma';
@@ -1697,9 +1736,10 @@ const userRoles = await prisma.userRole.findMany({
 });
 
 const hasRole = userRoles.some((ur) => requiredRoles.includes(ur.role));
-```
 
-**After (Fixed):**
+```text
+
+#### After (Fixed)
 
 ```typescript
 // No Prisma import needed
@@ -1715,17 +1755,18 @@ if (error) {
 }
 
 const hasRole = userRoles?.some((ur) => requiredRoles.includes(ur.role));
-```
+
+```text
 
 ### Best Practices for Proxy/Middleware Database Access
 
 1. **Always use Supabase client created in proxy/middleware** - don't import separate instances
-2. **Use direct table queries** - `supabase.from('table_name')`
-3. **Handle errors explicitly** - Edge runtime errors may differ from Node.js
-4. **Use snake_case for column names** - match actual database schema
-5. **Keep queries simple** - complex joins may be slower in Edge runtime
-6. **Consider caching** - Edge has limited memory, but responses are cached
-7. **Test thoroughly** - Edge runtime behavior differs from local Node.js
+1. **Use direct table queries** - `supabase.from('table_name')`
+1. **Handle errors explicitly** - Edge runtime errors may differ from Node.js
+1. **Use snake_case for column names** - match actual database schema
+1. **Keep queries simple** - complex joins may be slower in Edge runtime
+1. **Consider caching** - Edge has limited memory, but responses are cached
+1. **Test thoroughly** - Edge runtime behavior differs from local Node.js
 
 ### Common Pitfalls
 
@@ -1733,20 +1774,23 @@ const hasRole = userRoles?.some((ur) => requiredRoles.includes(ur.role));
 
 ```typescript
 import prisma from '@/lib/prisma'; // Will fail!
-```
+
+```text
 
 ❌ **Using camelCase for Supabase queries**
 
 ```typescript
 .eq('userId', id) // Wrong - database uses user_id
-```
+
+```text
 
 ❌ **Not handling Supabase errors**
 
 ```typescript
 const { data } = await supabase.from('users').select();
 // Missing error handling!
-```
+
+```text
 
 ❌ **Complex queries with multiple joins**
 
@@ -1755,21 +1799,22 @@ const { data } = await supabase.from('users').select();
 const { data } = await supabase
     .from('users')
     .select('*, roles(*), organizations(*, members(*))');
-```
+
+```text
 
 ### Debugging Tips
 
 If you see these errors in proxy/middleware, you're likely using Prisma:
 
--   "Cannot find module '@prisma/client'"
--   "Module not found: Can't resolve 'fs'"
--   "Cannot find module 'crypto'"
--   "PrismaClient is unable to be run in the browser"
+- "Cannot find module '@prisma/client'"
+- "Module not found: Can't resolve 'fs'"
+- "Cannot find module 'crypto'"
+- "PrismaClient is unable to be run in the browser"
 
 **Solution:** Replace Prisma queries with Supabase direct database queries as shown above.
 
 ### Reference Documentation
 
--   [Next.js Edge Runtime](https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes)
--   [Supabase JavaScript Client](https://supabase.com/docs/reference/javascript)
--   [Supabase Server-Side Auth (Next.js)](https://supabase.com/docs/guides/auth/server-side/nextjs?router=app&queryGroups=router)
+- [Next.js Edge Runtime](https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes)
+- [Supabase JavaScript Client](https://supabase.com/docs/reference/javascript)
+- [Supabase Server-Side Auth (Next.js)](https://supabase.com/docs/guides/auth/server-side/nextjs?router=app&queryGroups=router)
